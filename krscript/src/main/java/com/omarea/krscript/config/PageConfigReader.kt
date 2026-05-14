@@ -33,7 +33,7 @@ import java.util.Locale
  * Created by Hello on 2018/04/01.
  */
 class PageConfigReader {
-    private var context: Context
+    private lateinit var context: Context
     private var pageConfig: String = ""
     private val textResolver by lazy { ShellTranslation(context) }
 
