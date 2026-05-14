@@ -1,0 +1,54 @@
+name: Manual Android Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: Release name
+        required: false
+        default: MIO-KITCHEN Android
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean :pio:build --no-daemon
+
+      - name: Collect APK
+        run: |
+          mkdir -p release-apk
+          find pio/build/outputs/apk -type f -name '*.apk' -exec cp {} release-apk/ \;
+          ls -lah release-apk
+          test -n "$(find release-apk -type f -name '*.apk' -print -quit)"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MIO-KITCHEN-ANDROID-apk
+          path: release-apk/*.apk
+          if-no-files-found: error
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: manual-${{ github.run_number }}
+          name: ${{ inputs.release_name }} ${{ github.run_number }}
+          files: release-apk/*.apk
