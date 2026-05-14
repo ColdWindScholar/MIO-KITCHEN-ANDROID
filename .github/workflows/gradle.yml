@@ -37,15 +37,19 @@ jobs:
     - name: Make gradlew executable
       run: chmod +x ./gradlew
 
-    - name: Build with Gradle Wrapper
-      run: ./gradlew build --no-daemon
+    - name: Build release APK
+      run: ./gradlew clean :pio:assembleRelease --no-daemon
 
-    - name: Collect APK files
+    - name: Prepare release APK
       run: |
         mkdir -p release-apk
-        find pio/build/outputs/apk -type f -name '*.apk' -print -exec cp {} release-apk/ \;
+        VERSION_NAME=$(grep -oP 'versionName\s+"\K[^"]+' pio/build.gradle)
+        VERSION_CODE=$(grep -oP 'versionCode\s+\K[0-9]+' pio/build.gradle)
+        DATE_CODE=${VERSION_CODE#20}
+        APK_FILE=$(find pio/build/outputs/apk/release -type f -name '*.apk' ! -name '*unsigned*' -print -quit)
+        test -n "$APK_FILE"
+        cp "$APK_FILE" "release-apk/MIO-KITCHEN-${DATE_CODE}-${VERSION_NAME}.apk"
         ls -lah release-apk
-        test -n "$(find release-apk -type f -name '*.apk' -print -quit)"
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
