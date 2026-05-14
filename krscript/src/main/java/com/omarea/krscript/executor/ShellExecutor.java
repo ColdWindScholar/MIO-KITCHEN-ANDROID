@@ -5,6 +5,7 @@ import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.omarea.krscript.R;
 import com.omarea.krscript.model.RunnableNode;
 import com.omarea.krscript.model.ShellHandlerBase;
 
@@ -36,7 +37,7 @@ public class ShellExecutor {
 
         final Process process = ScriptEnvironmen.getRuntime();
         if (process == null) {
-            Toast.makeText(context, "未能启动命令行进程", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, R.string.shell_process_start_failed, Toast.LENGTH_SHORT).show();
             if (onExit != null) {
                 onExit.run();
             }

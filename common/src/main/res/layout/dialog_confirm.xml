@@ -22,12 +22,12 @@
                 android:id="@+id/confirm_title"
                 android:breakStrategy="simple"
                 style="@style/dialogTitle"
-                android:text="提示信息" />
+                android:text="@string/dialog_title_placeholder" />
             <TextView
                 android:id="@+id/confirm_message"
                 android:breakStrategy="simple"
                 style="@style/dialogDesc"
-                android:text="提示内容" />
+                android:text="@string/dialog_message_placeholder" />
 
             <FrameLayout
                 android:id="@+id/confirm_custom_view"

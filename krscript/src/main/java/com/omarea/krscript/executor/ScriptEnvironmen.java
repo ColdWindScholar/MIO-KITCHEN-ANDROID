@@ -40,6 +40,10 @@ public class ScriptEnvironmen {
         return inited;
     }
 
+    public static void refreshTranslations(Context context) {
+        shellTranslation = new ShellTranslation(context);
+    }
+
     private static void init(Context context) {
         SharedPreferences configSpf = context.getSharedPreferences("kr-script-config", Context.MODE_PRIVATE);
 
@@ -58,7 +62,7 @@ public class ScriptEnvironmen {
             return true;
         }
 
-        shellTranslation = new ShellTranslation(context.getApplicationContext());
+        refreshTranslations(context);
         rooted = KeepShellPublic.INSTANCE.checkRoot();
 
         try {
@@ -368,4 +372,3 @@ public class ScriptEnvironmen {
         }
     }
 }
-

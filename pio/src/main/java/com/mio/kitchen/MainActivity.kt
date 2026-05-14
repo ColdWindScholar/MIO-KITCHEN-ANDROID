@@ -3,6 +3,7 @@ package com.mio.kitchen
 import android.Manifest
 import android.app.Activity
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -13,8 +14,11 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CompoundButton
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -27,6 +31,7 @@ import com.omarea.common.ui.DialogHelper
 import com.omarea.common.ui.ProgressBarDialog
 import com.omarea.krscript.config.PageConfigReader
 import com.omarea.krscript.config.PageConfigSh
+import com.omarea.krscript.executor.ScriptEnvironmen
 import com.omarea.krscript.model.ClickableNode
 import com.omarea.krscript.model.KrScriptActionHandler
 import com.omarea.krscript.model.NodeInfoBase
@@ -45,6 +50,10 @@ class MainActivity : AppCompatActivity() {
     private var krScriptConfig = KrScriptConfig()
 
     private fun checkPermission(permission: String): Boolean = PermissionChecker.checkSelfPermission(this, permission) == PermissionChecker.PERMISSION_GRANTED
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LanguageConfig.wrap(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -207,7 +216,7 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("extension", extension)
             startActivityForResult(intent, ACTION_FILE_PATH_CHOOSER_INNER)
         } catch (ex: java.lang.Exception) {
-            Toast.makeText(this, "启动内置文件选择器失败！", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.file_selector_open_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -299,9 +308,15 @@ class MainActivity : AppCompatActivity() {
                 val layoutInflater = LayoutInflater.from(this)
                 val layout = layoutInflater.inflate(R.layout.dialog_about, null)
                 val transparentUi = layout.findViewById<CompoundButton>(R.id.transparent_ui)
+                val languageSpinner = layout.findViewById<Spinner>(R.id.language_spinner)
                 val themeConfig = ThemeConfig(this)
                 val add = layout.findViewById<Button>(R.id.button_add_qq)
                 val wxpay = layout.findViewById<Button>(R.id.button_juanzeng)
+                val languageLabels = LanguageConfig.supportedLanguages.map { getString(it.labelRes) }
+                val languageAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, languageLabels)
+                languageAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                languageSpinner.adapter = languageAdapter
+                languageSpinner.setSelection(LanguageConfig.getSelectedIndex(this), false)
                 wxpay.setOnClickListener{
                     Toast.makeText(this@MainActivity, if (juanzen()) {
                         getString(R.string.thanks_for_your_support)} else {
@@ -323,7 +338,20 @@ class MainActivity : AppCompatActivity() {
                 }
                 transparentUi.isChecked = themeConfig.getAllowTransparentUI()
 
-                DialogHelper.customDialog(this, layout)
+                val dialog = DialogHelper.customDialog(this, layout)
+                languageSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                        val selectedLanguage = LanguageConfig.supportedLanguages[position].code
+                        if (LanguageConfig.setLanguage(this@MainActivity, selectedLanguage)) {
+                            ScriptEnvironmen.refreshTranslations(this@MainActivity)
+                            dialog.dismiss()
+                            recreate()
+                        }
+                    }
+
+                    override fun onNothingSelected(parent: AdapterView<*>?) {
+                    }
+                }
             }
             R.id.option_menu_reboot -> {
                 DialogPower(this).showPowerMenu()

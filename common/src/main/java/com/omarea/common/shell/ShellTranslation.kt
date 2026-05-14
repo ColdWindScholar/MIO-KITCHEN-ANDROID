@@ -3,8 +3,13 @@ package com.omarea.common.shell
 import android.content.Context
 import java.util.Locale
 
+// 从Resource解析字符串，实现输出内容多语言
 class ShellTranslation(val context: Context) {
+    // 示例：
+    // @string:home_shell_01
     private val regex1 = Regex("^@(string|dimen):[_a-z]+.*", RegexOption.IGNORE_CASE)
+    // 示例
+    // @string/home_shell_01
     private val regex2 = Regex("^@(string|dimen)/[_a-z]+.*", RegexOption.IGNORE_CASE)
 
     fun resolveRow(originRow: String): String {
@@ -46,4 +51,5 @@ class ShellTranslation(val context: Context) {
 
         return originRow
     }
+
 }

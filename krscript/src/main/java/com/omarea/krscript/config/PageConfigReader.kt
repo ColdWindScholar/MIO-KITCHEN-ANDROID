@@ -10,6 +10,7 @@ import android.util.Log
 import android.util.Xml
 import android.widget.Toast
 import com.omarea.common.model.SelectItem
+import com.omarea.common.shell.ShellTranslation
 import com.omarea.krscript.R
 import com.omarea.krscript.executor.ExtractAssets
 import com.omarea.krscript.executor.ScriptEnvironmen
@@ -34,6 +35,7 @@ import java.util.Locale
 class PageConfigReader {
     private var context: Context
     private var pageConfig: String = ""
+    private val textResolver by lazy { ShellTranslation(context) }
 
     // 读取pageConfig时自动获得
     private var pageConfigAbsPath: String = ""
@@ -233,9 +235,13 @@ class PageConfigReader {
 
     private var actionParamInfos: ArrayList<ActionParamInfo>? = null
     var actionParamInfo: ActionParamInfo? = null
+    private fun resolveText(value: String): String {
+        return textResolver.resolveRow(value)
+    }
+
     private fun tagStartInAction(action: ActionNode, parser: XmlPullParser) {
         if ("title" == parser.name) {
-            action.title = parser.nextText()
+            action.title = resolveText(parser.nextText())
         } else if ("desc" == parser.name) {
             descNode(action, parser)
         } else if ("summary" == parser.name) {
@@ -255,11 +261,11 @@ class PageConfigReader {
                 val attrValue = parser.getAttributeValue(i)
                 when (attrName) {
                     "name" -> actionParamInfo.name = attrValue
-                    "label" -> actionParamInfo.label = attrValue
-                    "placeholder" -> actionParamInfo.placeholder = attrValue
-                    "title" -> actionParamInfo.title = attrValue
-                    "desc" -> actionParamInfo.desc = attrValue
-                    "value" -> actionParamInfo.value = attrValue
+                    "label" -> actionParamInfo.label = resolveText(attrValue)
+                    "placeholder" -> actionParamInfo.placeholder = resolveText(attrValue)
+                    "title" -> actionParamInfo.title = resolveText(attrValue)
+                    "desc" -> actionParamInfo.desc = resolveText(attrValue)
+                    "value" -> actionParamInfo.value = resolveText(attrValue)
                     "type" -> actionParamInfo.type = attrValue.toLowerCase(Locale.ROOT).trim { it <= ' ' }
                     "suffix" -> {
                         val suffix = attrValue.toLowerCase(Locale.ROOT).trim { it <= ' ' }
@@ -320,7 +326,7 @@ class PageConfigReader {
                     option.value = parser.getAttributeValue(i)
                 }
             }
-            option.title = parser.nextText()
+            option.title = resolveText(parser.nextText())
             if (option.value == null)
                 option.value = option.title
             actionParamInfo.options!!.add(option)
@@ -343,7 +349,7 @@ class PageConfigReader {
 
     private fun tagStartInPage(node: PageNode, parser: XmlPullParser) {
         when (parser.name) {
-            "title" -> node.title = parser.nextText()
+            "title" -> node.title = resolveText(parser.nextText())
             "desc" -> descNode(node, parser)
             "summary" -> summaryNode(node, parser)
             "resource" -> resourceNode(parser)
@@ -376,7 +382,7 @@ class PageConfigReader {
                             }
                         }
                     }
-                    option.title = parser.nextText()
+                    option.title = resolveText(parser.nextText())
                     if (option.key.isEmpty()) {
                         option.key = option.title
                     }
@@ -392,7 +398,7 @@ class PageConfigReader {
 
     private fun tagStartInSwitch(switchNode: SwitchNode, parser: XmlPullParser) {
         when (parser.name) {
-            "title" -> switchNode.title = parser.nextText()
+            "title" -> switchNode.title = resolveText(parser.nextText())
             "desc" -> descNode(switchNode, parser)
             "summary" -> summaryNode(switchNode, parser)
             "get", "getstate" -> switchNode.getState = parser.nextText()
@@ -409,7 +415,7 @@ class PageConfigReader {
             val attrValue = parser.getAttributeValue(i)
             when (attrName) {
                 "key", "index", "id" -> groupInfo.key = attrValue.trim()
-                "title" -> groupInfo.title = attrValue
+                "title" -> groupInfo.title = resolveText(attrValue)
                 "support", "visible" -> groupInfo.supported = executeResultRoot(context, attrValue) == "1"
             }
         }
@@ -484,8 +490,8 @@ class PageConfigReader {
             val attrValue = parser.getAttributeValue(i)
             when (parser.getAttributeName(i)) {
                 "key", "index", "id" -> nodeInfoBase.key = attrValue.trim()
-                "title" -> nodeInfoBase.title = attrValue
-                "desc" -> nodeInfoBase.desc = attrValue
+                "title" -> nodeInfoBase.title = resolveText(attrValue)
+                "desc" -> nodeInfoBase.desc = resolveText(attrValue)
                 "support", "visible" -> {
                     if (executeResultRoot(context, attrValue) != "1") {
                         return null
@@ -496,7 +502,7 @@ class PageConfigReader {
                     nodeInfoBase.desc = executeResultRoot(context, nodeInfoBase.descSh)
                 }
                 "summary" -> {
-                    nodeInfoBase.summary = parser.getAttributeValue(i)
+                    nodeInfoBase.summary = resolveText(parser.getAttributeValue(i))
                 }
                 "summary-sh" -> {
                     nodeInfoBase.summarySh = parser.getAttributeValue(i)
@@ -559,7 +565,7 @@ class PageConfigReader {
             }
         }
         if (nodeInfoBase.desc.isEmpty())
-            nodeInfoBase.desc = parser.nextText()
+            nodeInfoBase.desc = resolveText(parser.nextText())
     }
 
     private fun summaryNode(nodeInfoBase: NodeInfoBase, parser: XmlPullParser) {
@@ -571,7 +577,7 @@ class PageConfigReader {
             }
         }
         if (nodeInfoBase.summary.isEmpty())
-            nodeInfoBase.summary = parser.nextText()
+            nodeInfoBase.summary = resolveText(parser.nextText())
     }
 
     private fun resourceNode(parser: XmlPullParser) {
@@ -600,7 +606,7 @@ class PageConfigReader {
     private fun tagStartInText(textNode: TextNode, parser: XmlPullParser) {
         when (parser.name) {
             "title" -> {
-                textNode.title = parser.nextText()
+                textNode.title = resolveText(parser.nextText())
             }
             "desc" -> {
                 descNode(textNode, parser)
@@ -655,14 +661,14 @@ class PageConfigReader {
             } catch (_: Exception) {
             }
         }
-        textRow.text = "" + parser.nextText()
+        textRow.text = resolveText("" + parser.nextText())
         textNode.rows.add(textRow)
     }
 
     private fun tagStartInPicker(pickerNode: PickerNode, parser: XmlPullParser) {
         when (parser.name) {
             "title" -> {
-                pickerNode.title = parser.nextText()
+                pickerNode.title = resolveText(parser.nextText())
             }
             "desc" -> {
                 descNode(pickerNode, parser)
@@ -681,7 +687,7 @@ class PageConfigReader {
                         option.value = parser.getAttributeValue(i)
                     }
                 }
-                option.title = parser.nextText()
+                option.title = resolveText(parser.nextText())
                 if (option.value == null)
                     option.value = option.title
                 pickerNode.options!!.add(option)

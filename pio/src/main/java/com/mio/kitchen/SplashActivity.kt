@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.TextView
 import com.mio.kitchen.permissions.CheckRootStatus
 import com.omarea.common.shell.ShellExecutor
+import com.omarea.common.shell.ShellTranslation
 import com.omarea.krscript.executor.ScriptEnvironmen
 import kotlinx.android.synthetic.main.activity_splash.start_logo
 import kotlinx.android.synthetic.main.activity_splash.start_state_text
@@ -20,6 +21,10 @@ import java.io.BufferedReader
 import java.io.DataOutputStream
 
 class SplashActivity : Activity() {
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LanguageConfig.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -148,8 +153,9 @@ class SplashActivity : Activity() {
 
                     ScriptEnvironmen.executeShell(context, outputStream, config.beforeStartSh, params, null, "pio-splash")
 
-                    StreamReadThread(process.inputStream.bufferedReader(), updateLogViewHandler).start()
-                    StreamReadThread(process.errorStream.bufferedReader(), updateLogViewHandler).start()
+                    val shellTranslation = ShellTranslation(context)
+                    StreamReadThread(process.inputStream.bufferedReader(), updateLogViewHandler, shellTranslation).start()
+                    StreamReadThread(process.errorStream.bufferedReader(), updateLogViewHandler, shellTranslation).start()
 
                     process.waitFor()
                     updateLogViewHandler.onExit()
@@ -162,7 +168,11 @@ class SplashActivity : Activity() {
         }
     }
 
-    private class StreamReadThread(private var reader: BufferedReader, private var updateLogViewHandler: UpdateLogViewHandler) : Thread() {
+    private class StreamReadThread(
+        private var reader: BufferedReader,
+        private var updateLogViewHandler: UpdateLogViewHandler,
+        private val shellTranslation: ShellTranslation
+    ) : Thread() {
         override fun run() {
             var line: String?
             while (true) {
@@ -170,7 +180,7 @@ class SplashActivity : Activity() {
                 if (line == null) {
                     break
                 } else {
-                    updateLogViewHandler.onLogOutput(line)
+                    updateLogViewHandler.onLogOutput(shellTranslation.resolveRow(line))
                 }
             }
         }

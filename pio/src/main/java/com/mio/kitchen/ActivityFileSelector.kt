@@ -2,6 +2,7 @@ package com.mio.kitchen
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -24,6 +25,10 @@ class ActivityFileSelector : AppCompatActivity() {
     private var adapterFileSelector: AdapterFileSelector? = null
     private var extension = ""
     private var mode = 0
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LanguageConfig.wrap(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // TODO:ThemeSwitch.switchTheme(this)
@@ -82,7 +87,7 @@ class ActivityFileSelector : AppCompatActivity() {
 
         if (requestCode == 111) {
             if (!grant) {
-                Toast.makeText(applicationContext, "没有读取文件的权限！", Toast.LENGTH_LONG).show()
+                Toast.makeText(applicationContext, R.string.file_read_permission_denied, Toast.LENGTH_LONG).show()
             } else {
                 loadData()
             }
@@ -105,7 +110,7 @@ class ActivityFileSelector : AppCompatActivity() {
             if (sdcard.exists() && sdcard.isDirectory) {
                 val list = sdcard.listFiles()
                 if (list == null) {
-                    Toast.makeText(applicationContext, "获取文件列表失败！", Toast.LENGTH_LONG).show()
+                    Toast.makeText(applicationContext, R.string.file_list_load_failed, Toast.LENGTH_LONG).show()
                     return
                 }
                 val onSelected =  Runnable {
