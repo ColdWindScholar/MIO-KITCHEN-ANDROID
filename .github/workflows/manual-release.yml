@@ -11,6 +11,9 @@ on:
 permissions:
   contents: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -35,7 +38,7 @@ jobs:
       - name: Collect APK
         run: |
           mkdir -p release-apk
-          find pio/build/outputs/apk -type f -name '*.apk' -exec cp {} release-apk/ \;
+          find pio/build/outputs/apk -type f -name '*.apk' -print -exec cp {} release-apk/ \;
           ls -lah release-apk
           test -n "$(find release-apk -type f -name '*.apk' -print -quit)"
 
@@ -47,8 +50,12 @@ jobs:
           if-no-files-found: error
 
       - name: Publish release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: manual-${{ github.run_number }}
-          name: ${{ inputs.release_name }} ${{ github.run_number }}
-          files: release-apk/*.apk
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: build-${{ github.run_number }}
+          RELEASE_NAME: ${{ inputs.release_name }} ${{ github.run_number }}
+        run: |
+          gh release create "$RELEASE_TAG" release-apk/*.apk \
+            --target "$GITHUB_SHA" \
+            --title "$RELEASE_NAME" \
+            --notes "Automated APK build from master. Commit: $GITHUB_SHA"
