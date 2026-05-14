@@ -44,11 +44,10 @@ jobs:
       run: |
         mkdir -p release-apk
         VERSION_NAME=$(grep -oP 'versionName\s+"\K[^"]+' pio/build.gradle)
-        VERSION_CODE=$(grep -oP 'versionCode\s+\K[0-9]+' pio/build.gradle)
-        DATE_CODE=${VERSION_CODE#20}
+        BUILD_DATE=$(date -u +%y%m%d)
         APK_FILE=$(find pio/build/outputs/apk/release -type f -name '*.apk' ! -name '*unsigned*' -print -quit)
         test -n "$APK_FILE"
-        cp "$APK_FILE" "release-apk/MIO-KITCHEN-${DATE_CODE}-${VERSION_NAME}.apk"
+        cp "$APK_FILE" "release-apk/MIO-KITCHEN-${BUILD_DATE}-${VERSION_NAME}.apk"
         ls -lah release-apk
 
     - name: Upload APK artifact
