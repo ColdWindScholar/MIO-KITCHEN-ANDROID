@@ -5,30 +5,63 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: "Release name"
+        required: false
+        default: "MIO-KITCHEN Android"
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up JDK 8
       uses: actions/setup-java@v4
       with:
         java-version: '8'
         distribution: 'temurin'
 
-    # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+      uses: gradle/actions/setup-gradle@v4
 
-    # Выдаем права на исполнение файла gradlew
     - name: Make gradlew executable
       run: chmod +x ./gradlew
 
     - name: Build with Gradle Wrapper
-      run: ./gradlew build
+      run: ./gradlew build --no-daemon
+
+    - name: Collect APK files
+      run: |
+        mkdir -p release-apk
+        find pio/build/outputs/apk -type f -name '*.apk' -print -exec cp {} release-apk/ \;
+        ls -lah release-apk
+        test -n "$(find release-apk -type f -name '*.apk' -print -quit)"
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MIO-KITCHEN-ANDROID-apk
+        path: release-apk/*.apk
+        if-no-files-found: error
+
+    - name: Publish GitHub Release
+      if: github.event_name == 'workflow_dispatch'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        RELEASE_TAG: build-${{ github.run_number }}
+        RELEASE_NAME: ${{ inputs.release_name }} ${{ github.run_number }}
+      run: |
+        gh release create "$RELEASE_TAG" release-apk/*.apk \
+          --target "$GITHUB_SHA" \
+          --title "$RELEASE_NAME" \
+          --notes "Automated APK build from master. Commit: $GITHUB_SHA"
