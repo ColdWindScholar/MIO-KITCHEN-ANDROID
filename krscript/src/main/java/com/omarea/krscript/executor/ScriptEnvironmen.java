@@ -250,9 +250,15 @@ public class ScriptEnvironmen {
         params.put("BUSYBOX", (new File(FileWrite.INSTANCE.getPrivateFilePath(context, "busybox")).exists()) ? busyboxPath:"busybox");
         try {
             PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            long packageVersionCode;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                packageVersionCode = packageInfo.getLongVersionCode();
+            } else {
+                packageVersionCode = packageInfo.versionCode;
+            }
             params.put("PACKAGE_NAME", context.getPackageName());
             params.put("PACKAGE_VERSION_NAME", packageInfo.versionName);
-            params.put("PACKAGE_VERSION_CODE", String.valueOf((Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) ? packageInfo.getLongVersionCode(): packageInfo.versionCode));
+            params.put("PACKAGE_VERSION_CODE", String.valueOf(packageVersionCode));
         } catch (Exception ignored) {
         }
         return params;

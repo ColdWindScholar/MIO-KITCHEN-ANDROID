@@ -1,0 +1,70 @@
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: "Release name"
+        required: false
+        default: "MIO-KITCHEN Android"
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 8
+      uses: actions/setup-java@v4
+      with:
+        java-version: '8'
+        distribution: 'temurin'
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+
+    - name: Build release APK
+      run: ./gradlew clean :pio:assembleRelease --no-daemon
+
+    - name: Prepare release APK
+      run: |
+        mkdir -p release-apk
+        VERSION_NAME=$(grep -oP 'versionName\s+"\K[^"]+' pio/build.gradle)
+        BUILD_DATE=$(date -u +%y%m%d)
+        APK_FILE=$(find pio/build/outputs/apk/release -type f -name '*.apk' ! -name '*unsigned*' -print -quit)
+        test -n "$APK_FILE"
+        cp "$APK_FILE" "release-apk/MIO-KITCHEN-${BUILD_DATE}-${VERSION_NAME}.apk"
+        ls -lah release-apk
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MIO-KITCHEN-ANDROID-apk
+        path: release-apk/*.apk
+        if-no-files-found: error
+
+    - name: Publish GitHub Release
+      if: github.event_name == 'workflow_dispatch'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        RELEASE_TAG: build-${{ github.run_number }}
+        RELEASE_NAME: ${{ inputs.release_name }} ${{ github.run_number }}
+      run: |
+        gh release create "$RELEASE_TAG" release-apk/*.apk \
+          --target "$GITHUB_SHA" \
+          --title "$RELEASE_NAME" \
+          --notes "Automated APK build from master. Commit: $GITHUB_SHA"
