@@ -87,7 +87,7 @@ class ActivityFileSelector : AppCompatActivity() {
 
         if (requestCode == 111) {
             if (!grant) {
-                Toast.makeText(applicationContext, R.string.file_read_permission_denied, Toast.LENGTH_LONG).show()
+                Toast.makeText(this@ActivityFileSelector, R.string.file_read_permission_denied, Toast.LENGTH_LONG).show()
             } else {
                 loadData()
             }
@@ -110,7 +110,7 @@ class ActivityFileSelector : AppCompatActivity() {
             if (sdcard.exists() && sdcard.isDirectory) {
                 val list = sdcard.listFiles()
                 if (list == null) {
-                    Toast.makeText(applicationContext, R.string.file_list_load_failed, Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ActivityFileSelector, R.string.file_list_load_failed, Toast.LENGTH_LONG).show()
                     return
                 }
                 val onSelected =  Runnable {
@@ -121,9 +121,9 @@ class ActivityFileSelector : AppCompatActivity() {
                     }
                 }
                 adapterFileSelector = if (mode == 1) {
-                    AdapterFileSelector.FolderChooser(applicationContext, sdcard, onSelected, ProgressBarDialog(this))
+                    AdapterFileSelector.FolderChooser(this@ActivityFileSelector, sdcard, onSelected, ProgressBarDialog(this))
                 } else {
-                    AdapterFileSelector.FileChooser(applicationContext, sdcard, onSelected, ProgressBarDialog(this), extension)
+                    AdapterFileSelector.FileChooser(this@ActivityFileSelector, sdcard, onSelected, ProgressBarDialog(this), extension)
                 }
 
                 file_selector_list.adapter = adapterFileSelector

@@ -186,7 +186,7 @@ class ActionPage : AppCompatActivity() {
     // 右上角菜单的创建
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         if (menuOptions == null) {
-            menuOptions = PageMenuLoader(applicationContext, currentPageConfig).load()
+            menuOptions = PageMenuLoader(this@ActionPage, currentPageConfig).load()
         }
 
         if (menuOptions != null && menu != null) {
@@ -413,7 +413,7 @@ class ActionPage : AppCompatActivity() {
                 }
 
                 if (items == null && pageConfigPath.isNotEmpty()) {
-                    items = PageConfigReader(applicationContext, pageConfigPath, pageConfigDir).readConfigXml()
+                    items = PageConfigReader(this@ActionPage, pageConfigPath, pageConfigDir).readConfigXml()
                 }
 
                 if (afterRead.isNotEmpty()) {

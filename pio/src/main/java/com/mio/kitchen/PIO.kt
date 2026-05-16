@@ -10,6 +10,5 @@ class PIO : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        LanguageConfig.wrap(this)
     }
 }
