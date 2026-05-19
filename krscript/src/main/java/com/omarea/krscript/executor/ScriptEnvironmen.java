@@ -183,6 +183,8 @@ public class ScriptEnvironmen {
 
         StringBuilder stringBuilder = new StringBuilder();
 
+        stringBuilder.append("export LANG='en_US.UTF-8'\n");
+        stringBuilder.append("export LC_ALL='en_US.UTF-8'\n");
         stringBuilder.append("\n");
         if (nodeInfoBase != null && !nodeInfoBase.getCurrentPageConfigPath().isEmpty()) {
             String parentPageConfigDir = nodeInfoBase.getPageConfigDir();
@@ -201,7 +203,7 @@ public class ScriptEnvironmen {
             stringBuilder.append("export PAGE_CONFIG_DIR=''\n");
             stringBuilder.append("export PAGE_CONFIG_FILE=''\n");
             stringBuilder.append("export PAGE_WORK_DIR=''\n");
-            stringBuilder.append("export PAGE_WORK_DIR=''\n");
+            stringBuilder.append("export PAGE_WORK_FILE=''\n");
         }
         stringBuilder.append("\n\n");
         stringBuilder.append(environmentPath).append(" \"").append(path).append("\"");
@@ -239,6 +241,8 @@ public class ScriptEnvironmen {
         FileOwner fileOwner = new FileOwner(context);
         int androidUid = fileOwner.getUserId();
         params.put("ANDROID_UID", String.valueOf(androidUid));
+        params.put("LANG", "en_US.UTF-8");
+        params.put("LC_ALL", "en_US.UTF-8");
         try {
             params.put("APP_USER_ID", fileOwner.getFileOwner());
         } catch (Exception ignored) {
@@ -335,6 +339,13 @@ public class ScriptEnvironmen {
 
         if (params == null) {
             params = new HashMap<>();
+        }
+
+        if (!params.containsKey("LANG")) {
+            params.put("LANG", "en_US.UTF-8");
+        }
+        if (!params.containsKey("LC_ALL")) {
+            params.put("LC_ALL", "en_US.UTF-8");
         }
 
         // 页面配置文件路径
