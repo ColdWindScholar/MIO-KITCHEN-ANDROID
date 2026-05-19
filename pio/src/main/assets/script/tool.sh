@@ -159,9 +159,8 @@ flash_img() {
   sleep 2
 }
 gszh() {
-  i=$IMG
-  info=$(utils gettype $zml/$xm/${i}.img)
   for i in ${IMG}; do
+    info=$(utils gettype $zml/$xm/${i}.img)
     if [ $gs = sparse ]; then
       if [ $info = "ext" ] || [ $info = "erofs" ] || [ $info = "super" ]; then
         rts $zml/$xm/${i}.img
@@ -502,7 +501,7 @@ zdyfj() {
   cd $zml/$xm/
   for i in ${IMG}; do
     info=$(utils gettype $i.img)
-    image="${IMG}.img"
+    image="${i}.img"
     if [ -e $mdir/$xm/config/${i}_file_contexts ]; then
       rm -rf $mdir/$xm/config/${i}_file_contexts
       rm -rf $mdir/$xm/config/${i}_fs_config
