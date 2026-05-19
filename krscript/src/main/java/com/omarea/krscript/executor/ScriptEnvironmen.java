@@ -184,7 +184,7 @@ public class ScriptEnvironmen {
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append("export LANG='en_US.UTF-8'\n");
-        stringBuilder.append("export LC_ALL='en_US.UTF-8'\n");
+        stringBuilder.append("export LC_CTYPE='en_US.UTF-8'\n");
         stringBuilder.append("\n");
         if (nodeInfoBase != null && !nodeInfoBase.getCurrentPageConfigPath().isEmpty()) {
             String parentPageConfigDir = nodeInfoBase.getPageConfigDir();
@@ -242,7 +242,7 @@ public class ScriptEnvironmen {
         int androidUid = fileOwner.getUserId();
         params.put("ANDROID_UID", String.valueOf(androidUid));
         params.put("LANG", "en_US.UTF-8");
-        params.put("LC_ALL", "en_US.UTF-8");
+        params.put("LC_CTYPE", "en_US.UTF-8");
         try {
             params.put("APP_USER_ID", fileOwner.getFileOwner());
         } catch (Exception ignored) {
@@ -344,8 +344,8 @@ public class ScriptEnvironmen {
         if (!params.containsKey("LANG")) {
             params.put("LANG", "en_US.UTF-8");
         }
-        if (!params.containsKey("LC_ALL")) {
-            params.put("LC_ALL", "en_US.UTF-8");
+        if (!params.containsKey("LC_CTYPE")) {
+            params.put("LC_CTYPE", "en_US.UTF-8");
         }
 
         // 页面配置文件路径
