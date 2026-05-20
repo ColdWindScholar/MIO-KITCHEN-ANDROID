@@ -36,6 +36,19 @@ public class ScriptEnvironmen {
     @SuppressLint("StaticFieldLeak")
     private static ShellTranslation shellTranslation;
 
+    private static final String ENV_LC_CTYPE = "LC_CTYPE";
+    private static final String ENV_APP_LANGUAGE = "APP_LANGUAGE";
+    private static final String SHELL_UTF8_LOCALE = "en_US.UTF-8";
+    private static final String APP_LANGUAGE_PREFS = "app_language";
+    private static final String APP_LANGUAGE_KEY = "language";
+    private static final String DEFAULT_APP_LANGUAGE = "en";
+
+    /*
+     * Supported languages: en, ru, zh, ja
+     * Keep this list in sync with LanguageConfig.kt when adding new app languages.
+     */
+    private static final String[] SUPPORTED_APP_LANGUAGES = {"en", "ru", "zh", "ja"};
+
     public static boolean isInited() {
         return inited;
     }
@@ -48,6 +61,36 @@ public class ScriptEnvironmen {
         SharedPreferences configSpf = context.getSharedPreferences("kr-script-config", Context.MODE_PRIVATE);
 
         init(context, configSpf.getString("executor", "kr-script/executor.sh"), configSpf.getString("toolkitDir", "kr-script/toolkit"));
+    }
+
+    private static boolean isSupportedAppLanguage(String language) {
+        if (language == null) {
+            return false;
+        }
+
+        for (String supportedLanguage : SUPPORTED_APP_LANGUAGES) {
+            if (supportedLanguage.equals(language)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static String getAppLanguage(Context context) {
+        try {
+            String language = context
+                    .getApplicationContext()
+                    .getSharedPreferences(APP_LANGUAGE_PREFS, Context.MODE_PRIVATE)
+                    .getString(APP_LANGUAGE_KEY, DEFAULT_APP_LANGUAGE);
+
+            if (isSupportedAppLanguage(language)) {
+                return language;
+            }
+        } catch (Exception ignored) {
+        }
+
+        return DEFAULT_APP_LANGUAGE;
     }
 
     /**
@@ -183,8 +226,8 @@ public class ScriptEnvironmen {
 
         StringBuilder stringBuilder = new StringBuilder();
 
-        stringBuilder.append("export LANG='en_US.UTF-8'\n");
-        stringBuilder.append("export LC_CTYPE='en_US.UTF-8'\n");
+        stringBuilder.append("export ").append(ENV_LC_CTYPE).append("='").append(SHELL_UTF8_LOCALE).append("'\n");
+        stringBuilder.append("export ").append(ENV_APP_LANGUAGE).append("='").append(getAppLanguage(context)).append("'\n");
         stringBuilder.append("\n");
         if (nodeInfoBase != null && !nodeInfoBase.getCurrentPageConfigPath().isEmpty()) {
             String parentPageConfigDir = nodeInfoBase.getPageConfigDir();
@@ -241,8 +284,6 @@ public class ScriptEnvironmen {
         FileOwner fileOwner = new FileOwner(context);
         int androidUid = fileOwner.getUserId();
         params.put("ANDROID_UID", String.valueOf(androidUid));
-        params.put("LANG", "en_US.UTF-8");
-        params.put("LC_CTYPE", "en_US.UTF-8");
         try {
             params.put("APP_USER_ID", fileOwner.getFileOwner());
         } catch (Exception ignored) {
@@ -341,11 +382,11 @@ public class ScriptEnvironmen {
             params = new HashMap<>();
         }
 
-        if (!params.containsKey("LANG")) {
-            params.put("LANG", "en_US.UTF-8");
+        if (!params.containsKey(ENV_LC_CTYPE)) {
+            params.put(ENV_LC_CTYPE, SHELL_UTF8_LOCALE);
         }
-        if (!params.containsKey("LC_CTYPE")) {
-            params.put("LC_CTYPE", "en_US.UTF-8");
+        if (!params.containsKey(ENV_APP_LANGUAGE)) {
+            params.put(ENV_APP_LANGUAGE, getAppLanguage(context));
         }
 
         // 页面配置文件路径

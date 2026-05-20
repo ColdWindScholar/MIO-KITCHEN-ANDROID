@@ -1,29 +1,30 @@
-name: Java CI with Gradle
+name: Build APK and Release
 
 on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
   workflow_dispatch:
     inputs:
-      release_name:
-        description: "Release name"
+      version:
+        description: "Release version. Leave empty to bump patch automatically, for example 2.0.1 -> 2.0.2"
         required: false
-        default: "MIO-KITCHEN Android"
+        default: ""
 
 permissions:
   contents: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  APK_BASENAME: MIO-KITCHEN
+  RELEASE_TIMEZONE: Europe/Riga
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Set up JDK 8
       uses: actions/setup-java@v4
@@ -37,34 +38,99 @@ jobs:
     - name: Make gradlew executable
       run: chmod +x ./gradlew
 
+    - name: Resolve release version
+      id: version
+      shell: bash
+      env:
+        REQUESTED_VERSION: ${{ github.event.inputs.version }}
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+
+        CURRENT_VERSION=$(grep -oP 'versionName\s+"\K[^"]+' pio/build.gradle | head -n 1)
+
+        if [ -n "${REQUESTED_VERSION}" ]; then
+          RELEASE_VERSION="${REQUESTED_VERSION#v}"
+        else
+          LATEST_TAG=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || echo "")
+          BASE_VERSION="${LATEST_TAG#v}"
+
+          if ! [[ "$BASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            BASE_VERSION="$CURRENT_VERSION"
+          fi
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE_VERSION"
+          RELEASE_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+        fi
+
+        if ! [[ "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "Version must use semantic format: X.Y.Z" >&2
+          exit 1
+        fi
+
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$RELEASE_VERSION"
+
+        if [ "$PATCH" -gt 999 ]; then
+          echo "Patch version must be lower than 1000 because versionCode uses YYMMDDPPP format" >&2
+          exit 1
+        fi
+
+        RELEASE_DATE=$(TZ="${RELEASE_TIMEZONE}" date +%d%m%y)
+        VERSION_CODE_DATE=$(TZ="${RELEASE_TIMEZONE}" date +%y%m%d)
+        VERSION_CODE=$((10#$VERSION_CODE_DATE * 1000 + 10#$PATCH))
+        APK_NAME="${APK_BASENAME}-${RELEASE_DATE}-${RELEASE_VERSION}.apk"
+        RELEASE_TAG="v${RELEASE_VERSION}"
+        RELEASE_TITLE="Release ${RELEASE_VERSION}"
+
+        python3 - <<PY
+from pathlib import Path
+import re
+p = Path('pio/build.gradle')
+s = p.read_text()
+s = re.sub(r'versionName\s+"[^"]+"', 'versionName "$RELEASE_VERSION"', s, count=1)
+s = re.sub(r'versionCode\s+\d+', 'versionCode $VERSION_CODE', s, count=1)
+p.write_text(s)
+PY
+
+        echo "release_version=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+        echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+        echo "release_title=$RELEASE_TITLE" >> "$GITHUB_OUTPUT"
+        echo "release_date=$RELEASE_DATE" >> "$GITHUB_OUTPUT"
+        echo "apk_name=$APK_NAME" >> "$GITHUB_OUTPUT"
+        echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+
+        echo "Resolved version: $RELEASE_VERSION"
+        echo "Version code: $VERSION_CODE"
+        echo "Release date: $RELEASE_DATE"
+        echo "APK name: $APK_NAME"
+        echo "Release title: $RELEASE_TITLE"
+
     - name: Build release APK
-      run: ./gradlew clean :pio:assembleRelease --no-daemon
+      run: ./gradlew clean :pio:assembleRelease -PapkReleaseDate=${{ steps.version.outputs.release_date }} --no-daemon
 
     - name: Prepare release APK
+      shell: bash
       run: |
+        set -euo pipefail
         mkdir -p release-apk
-        VERSION_NAME=$(grep -oP 'versionName\s+"\K[^"]+' pio/build.gradle)
-        BUILD_DATE=$(date -u +%y%m%d)
         APK_FILE=$(find pio/build/outputs/apk/release -type f -name '*.apk' ! -name '*unsigned*' -print -quit)
         test -n "$APK_FILE"
-        cp "$APK_FILE" "release-apk/MIO-KITCHEN-${BUILD_DATE}-${VERSION_NAME}.apk"
+        cp "$APK_FILE" "release-apk/${{ steps.version.outputs.apk_name }}"
         ls -lah release-apk
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
-        name: MIO-KITCHEN-ANDROID-apk
+        name: ${{ env.APK_BASENAME }}-${{ steps.version.outputs.release_date }}-${{ steps.version.outputs.release_version }}
         path: release-apk/*.apk
         if-no-files-found: error
 
     - name: Publish GitHub Release
-      if: github.event_name == 'workflow_dispatch'
       env:
         GH_TOKEN: ${{ github.token }}
-        RELEASE_TAG: build-${{ github.run_number }}
-        RELEASE_NAME: ${{ inputs.release_name }} ${{ github.run_number }}
       run: |
-        gh release create "$RELEASE_TAG" release-apk/*.apk \
+        set -euo pipefail
+        gh release create "${{ steps.version.outputs.release_tag }}" release-apk/*.apk \
           --target "$GITHUB_SHA" \
-          --title "$RELEASE_NAME" \
-          --notes "Automated APK build from master. Commit: $GITHUB_SHA"
+          --title "${{ steps.version.outputs.release_title }}" \
+          --notes "Automated APK build. Version: ${{ steps.version.outputs.release_version }}. APK: ${{ steps.version.outputs.apk_name }}. Commit: $GITHUB_SHA"

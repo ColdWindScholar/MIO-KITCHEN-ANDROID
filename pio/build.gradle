@@ -27,6 +27,18 @@ android {
     lintOptions {
         abortOnError false
     }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            def apkReleaseDate = project.findProperty("apkReleaseDate")
+
+            if (apkReleaseDate == null || apkReleaseDate.toString().trim().isEmpty()) {
+                apkReleaseDate = new Date().format("ddMMyy", java.util.TimeZone.getTimeZone("Europe/Riga"))
+            }
+
+            outputFileName = "MIO-KITCHEN-${apkReleaseDate}-${variant.versionName}.apk"
+        }
+    }
 }
 
 dependencies {
