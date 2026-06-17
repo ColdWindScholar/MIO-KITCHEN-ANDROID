@@ -275,7 +275,7 @@ class FilesystemImageAnalyzer : ImageFirmwareAnalyzer() {
                 ((head[1025].toInt() and 0xFF) shl 8) or
                 ((head[1026].toInt() and 0xFF) shl 16) or
                 ((head[1027].toInt() and 0xFF) shl 24)
-            if (erofsMagic == 0xe0f5e1e2) {
+            if (erofsMagic.toLong() == 0xe0f5e1e2L) {
                 filesystem = "erofs"
                 isErofs = true
             }
@@ -286,7 +286,7 @@ class FilesystemImageAnalyzer : ImageFirmwareAnalyzer() {
                 ((head[1025].toInt() and 0xFF) shl 8) or
                 ((head[1026].toInt() and 0xFF) shl 16) or
                 ((head[1027].toInt() and 0xFF) shl 24)
-            if (f2fsMagic == 0xf2f52010) {
+            if (f2fsMagic.toLong() == 0xf2f52010L) {
                 filesystem = "f2fs"
                 isF2fs = true
             }

@@ -48,7 +48,7 @@ class ShellTranslation(context: Context) {
         val trimmedRow = originRow.trim()
         val reference = trimmedRow.substringBefore("|")
         val separator = getReferenceSeparator(reference) ?: return originRow
-        val type = reference.substring(1, reference.indexOf(separator)).toLowerCase(Locale.ENGLISH)
+        val type = reference.substring(1, reference.indexOf(separator)).lowercase(Locale.ENGLISH)
         val name = reference.substring(reference.indexOf(separator) + 1)
 
         if (!isValidResourceName(name)) {

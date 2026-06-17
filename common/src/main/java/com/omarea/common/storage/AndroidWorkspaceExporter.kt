@@ -80,8 +80,9 @@ class AndroidWorkspaceExporter(
         }
         return try {
             val (copied, sha) = copyWithOptionalHash(sourceFile) { output ->
-                context.contentResolver.openOutputStream(targetUri, "w")?.use { output(it) }
-                    ?: throw java.io.IOException("Cannot open output stream for $targetUri")
+                context.contentResolver.openOutputStream(targetUri, "w")?.use { out ->
+                    copyStream(sourceFile.inputStream(), out)
+                } ?: throw java.io.IOException("Cannot open output stream for $targetUri")
             }
             ExportResult.Success(
                 targetUri = targetUri,
@@ -141,7 +142,9 @@ class AndroidWorkspaceExporter(
         val targetFile = File(targetDir, sourceFile.name)
         return try {
             val (copied, sha) = copyWithOptionalHash(sourceFile) { output ->
-                targetFile.outputStream().use { output(it) }
+                targetFile.outputStream().use { out ->
+                    copyStream(sourceFile.inputStream(), out)
+                }
             }
             ExportResult.Success(
                 targetUri = Uri.fromFile(targetFile),
@@ -163,19 +166,37 @@ class AndroidWorkspaceExporter(
         val digest = if (computeSha256Enabled) MessageDigest.getInstance("SHA-256") else null
         var bytesCopied = 0L
         source.inputStream().use { input ->
-            writer { output ->
-                val buffer = ByteArray(64 * 1024)
-                while (true) {
-                    val read = input.read(buffer)
-                    if (read <= 0) break
-                    output.write(buffer, 0, read)
-                    digest?.update(buffer, 0, read)
-                    bytesCopied += read
-                }
+            val tempDigest = digest
+            val counter = longArrayOf(0L)
+            writer { out ->
+                copyStream(input, out, tempDigest, counter)
             }
+            bytesCopied = counter[0]
         }
         val sha = digest?.digest()?.joinToString("") { "%02x".format(it) }
         return bytesCopied to sha
+    }
+
+    /**
+     * RU: Копирует InputStream в OutputStream с опциональным подсчётом SHA-256
+     *     и количества байтов.
+     * EN: Copies an InputStream to an OutputStream with optional SHA-256 and
+     *     byte-count tracking.
+     */
+    private fun copyStream(
+        input: java.io.InputStream,
+        output: OutputStream,
+        digest: MessageDigest? = null,
+        counter: LongArray? = null
+    ) {
+        val buffer = ByteArray(64 * 1024)
+        while (true) {
+            val read = input.read(buffer)
+            if (read <= 0) break
+            output.write(buffer, 0, read)
+            digest?.update(buffer, 0, read)
+            if (counter != null) counter[0] += read
+        }
     }
 
     private val computeSha256Enabled: Boolean = true

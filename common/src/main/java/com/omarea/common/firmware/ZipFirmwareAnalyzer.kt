@@ -9,7 +9,7 @@ import java.util.zip.ZipInputStream
  *
  * Определяет по содержимому zip:
  *   - `payload.bin` -> [FirmwarePackageType.PAYLOAD_BIN] (Android 10+ OTA);
- *   - `images/*.img` -> набор отдельных образов;
+ *   - `images/{name}.img` -> набор отдельных образов;
  *   - `META-INF/com/android/metadata` -> A/B или non-A/B OTA;
  *   - `super.img` -> dynamic partitions;
  *   - `vbmeta.img` -> AVB;
@@ -23,7 +23,7 @@ import java.util.zip.ZipInputStream
  *
  * Detects from the zip contents:
  *   - `payload.bin` -> [FirmwarePackageType.PAYLOAD_BIN] (Android 10+ OTA);
- *   - `images/*.img` -> set of individual images;
+ *   - `images/{name}.img` -> set of individual images;
  *   - `META-INF/com/android/metadata` -> A/B or non-A/B OTA;
  *   - `super.img` -> dynamic partitions;
  *   - `vbmeta.img` -> AVB;

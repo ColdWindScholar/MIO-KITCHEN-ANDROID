@@ -38,7 +38,7 @@ class AndroidStorageGateway(
         options: StorageResolveOptions
     ): StorageResolveResult {
         return try {
-            when (uri.scheme?.toLowerCase(Locale.ROOT)) {
+            when (uri.scheme?.lowercase(Locale.ROOT)) {
                 "file" -> resolvePathForShell(uri.path ?: return failed("Empty file:// path"))
                 "content" -> resolveContentUri(uri, options)
                 else -> failed("Unsupported URI scheme: ${uri.scheme}")
