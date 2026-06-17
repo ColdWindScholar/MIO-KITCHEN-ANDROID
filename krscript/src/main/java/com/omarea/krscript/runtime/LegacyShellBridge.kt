@@ -168,6 +168,15 @@ object LegacyShellBridge {
         // RU: выбираем shell-runtime. RootShellRuntime использует su, UserShellRuntime — sh.
         // EN: pick the shell-runtime. RootShellRuntime uses su, UserShellRuntime uses sh.
         shellRuntime = if (rooted) RootShellRuntime(shellTranslation) else UserShellRuntime(shellTranslation)
+
+        // RU: сообщаем root-статус в KeepShellPublic (в модуле common),
+        //     чтобы DialogPower и PathAnalysis могли использовать
+        //     KeepShellPublic.doCmdSync() без зависимости на krscript.
+        // EN: propagate the root status to KeepShellPublic (in the common
+        //     module) so DialogPower and PathAnalysis can use
+        //     KeepShellPublic.doCmdSync() without depending on krscript.
+        com.omarea.common.shell.KeepShellPublic.setRooted(rooted)
+
         inited = true
         return inited
     }

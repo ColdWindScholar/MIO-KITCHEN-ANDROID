@@ -136,22 +136,28 @@ for token in [
     require(token in loader_src, f"PageConfigLoader.kt must declare/use {token}")
 
 
-# --- KeepShellPublic is now a facade ------------------------------------
+# --- KeepShellPublic is now self-contained (no krscript dependency) ------
 
 ksp_src_raw = (ROOT / "common/src/main/java/com/omarea/common/shell/KeepShellPublic.kt").read_text(encoding="utf-8")
 ksp_src = strip_comments(ksp_src_raw)
 require(
-    "LegacyShellBridge" in ksp_src,
-    "KeepShellPublic must delegate to LegacyShellBridge"
+    "Runtime.getRuntime().exec" in ksp_src,
+    "KeepShellPublic must use Runtime.exec() directly (self-contained)"
 )
+# KeepShellPublic must NOT import from krscript (circular dependency).
 require(
-    "import com.omarea.krscript.runtime.LegacyShellBridge" in ksp_src_raw,
-    "KeepShellPublic must import LegacyShellBridge"
+    "import com.omarea.krscript" not in ksp_src_raw,
+    "KeepShellPublic must not import from krscript (circular dependency)"
 )
 # KeepShellPublic must NOT own a KeepShell instance (in code, not comments).
 require(
     "KeepShell(" not in ksp_src,
     "KeepShellPublic must not construct a KeepShell instance"
+)
+# KeepShellPublic must expose setRooted for LegacyShellBridge to call.
+require(
+    "fun setRooted" in ksp_src,
+    "KeepShellPublic must expose setRooted() for LegacyShellBridge"
 )
 
 
@@ -257,7 +263,7 @@ print("PASS: legacy KeepShell.kt, PageConfigReader.kt, ScriptEnvironmen.java rem
 print("PASS: LegacyShellBridge singleton bridges legacy API to ShellRuntime")
 print("PASS: ScriptEnvironmen.kt is a thin facade over LegacyShellBridge")
 print("PASS: PageConfigLoader replaces PageConfigReader (uses PageConfigRepository)")
-print("PASS: KeepShellPublic is now a facade (no more KeepShell instance)")
+print("PASS: KeepShellPublic is self-contained (uses Runtime.exec, no krscript dependency)")
 print("PASS: KeepShellRuntime uses Runtime.exec() directly (no more KeepShell wrapper)")
 print("PASS: CheckRootStatus probes root via Runtime.exec (no more KeepShellPublic.checkRoot)")
 print("PASS: MainActivity/ActionPage/SplashActivity/PageConfigSh use new API")
