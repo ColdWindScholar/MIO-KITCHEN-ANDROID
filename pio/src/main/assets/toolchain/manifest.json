@@ -1,0 +1,319 @@
+{
+  "_comment": "RU: Манифест bundled toolchain. См. docs/{ru,en}/dev/runtime-profiles.md. / EN: Manifest of the bundled toolchain. See docs/{ru,en}/dev/runtime-profiles.md.",
+  "_comment_2": "RU: На данный момент manifest содержит описания известных бинарников из pio/src/main/assets/bin/. Реальные SHA-256 будут добавлены на этапе toolchain installer. / EN: For now the manifest contains descriptions of known binaries from pio/src/main/assets/bin/. Real SHA-256 values will be added by the toolchain installer stage.",
+  "tools": [
+    {
+      "name": "lpunpack",
+      "version": "android-tools-r34",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": null,
+      "capabilities": [
+        "super_image"
+      ],
+      "source": "AOSP",
+      "license": "Apache-2.0",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "lpmake",
+      "version": "android-tools-r34",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "76e499bbd7c5048e1bf04a4f6d89b89f86162d278ba31ca003b00ba269c2782b",
+      "capabilities": [
+        "super_image"
+      ],
+      "source": "AOSP",
+      "license": "Apache-2.0",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "simg2img",
+      "version": "android-tools-r34",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": null,
+      "capabilities": [
+        "sparse"
+      ],
+      "source": "AOSP",
+      "license": "Apache-2.0",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "img2simg",
+      "version": "android-tools-r34",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "043941d912cf0bcf80895c8e42b7dd58d08d29ec4bbc7ccd33ba7f4bd205afa1",
+      "capabilities": [
+        "sparse"
+      ],
+      "source": "AOSP",
+      "license": "Apache-2.0",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "mke2fs",
+      "version": "e2fsprogs-1.46",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "b0b626ea3b9ecd80eb666e5bb02d093708a405807d43a654ab0c978142f3cb92",
+      "capabilities": [
+        "ext4"
+      ],
+      "source": "e2fsprogs",
+      "license": "GPL-2.0-or-later",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "e2fsdroid",
+      "version": "e2fsprogs-1.46",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "579d1e1560b8946994e34b4bb39091dd3d234da959570712ed8a052076c6f586",
+      "capabilities": [
+        "ext4"
+      ],
+      "source": "e2fsprogs",
+      "license": "GPL-2.0-or-later",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "resize2fs",
+      "version": "e2fsprogs-1.46",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "6ca0f1f68ed326190a949428a601f3160ac2bf3ed11a390bb0d3e5c88139f977",
+      "capabilities": [
+        "ext4"
+      ],
+      "source": "e2fsprogs",
+      "license": "GPL-2.0-or-later",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "make_ext4fs",
+      "version": "android-tools-r34",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "c9becdb6bc439b43e5e2ed6956fc1e28f20993b24b89b99cd3fbc10b679757fc",
+      "capabilities": [
+        "ext4"
+      ],
+      "source": "AOSP",
+      "license": "Apache-2.0",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "mkfs.erofs",
+      "version": "erofs-utils-1.7",
+      "abi": [
+        "arm64-v8a"
+      ],
+      "sha256": "05cab4d0be19171654e2b2608ee20f5c53ab6a0f3ff7d474dcb872bbb17fd208",
+      "capabilities": [
+        "erofs"
+      ],
+      "source": "erofs-utils",
+      "license": "GPL-2.0-or-later",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "extract.erofs",
+      "version": "erofs-utils-1.7",
+      "abi": [
+        "arm64-v8a"
+      ],
+      "sha256": "bfb18a59bc0486758dc91032a86d0644a12dd006e7cbcf5c746aa94067c57108",
+      "capabilities": [
+        "erofs"
+      ],
+      "source": "erofs-utils",
+      "license": "GPL-2.0-or-later",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "magiskboot",
+      "version": "magisk-27",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "9d7408ece2ee981959d6f451bbe1462bc35eb4f83a8c75bca3d225f0b9e45f05",
+      "capabilities": [
+        "boot_image"
+      ],
+      "source": "magisk",
+      "license": "GPL-3.0-or-later",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "busybox",
+      "version": "1.36",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "84262d3fff90a244a8d8adf4e55428351c5f5afb07af5b15fe6d98938de40d17",
+      "capabilities": [
+        "busybox"
+      ],
+      "source": "busybox",
+      "license": "GPL-2.0-or-later",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "brotli",
+      "version": "1.1",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "b4955b9fca4a09ccc25c8b7296ed1c601adc2e52171b63f30e1248d9d637525d",
+      "capabilities": [
+        "compression_brotli"
+      ],
+      "source": "brotli",
+      "license": "MIT",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "utils",
+      "version": "bundled",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "3e636d782aed0b787c0da852b7d7e3d612c60c8960b024ecc06a31d4236bd83a",
+      "capabilities": [
+        "generic"
+      ],
+      "source": "MIO-KITCHEN",
+      "license": "Apache-2.0",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "libandroid-posix-semaphore.so",
+      "version": "bundled",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "4d9e59b80619aa8260bf9b37d4736095a5304280bcedaa0723bbc99aad5cdd7b",
+      "capabilities": [
+        "generic"
+      ],
+      "source": "MIO-KITCHEN",
+      "license": "Apache-2.0",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "libandroid-support.so",
+      "version": "bundled",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "6dbd7ff1a0b92fe33df59271be7f9b26cfc5e1b36b8262a8b68e056cdb3a3ab0",
+      "capabilities": [
+        "generic"
+      ],
+      "source": "MIO-KITCHEN",
+      "license": "Apache-2.0",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "libbz2.so.1.0",
+      "version": "bundled",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "e3e87b89174f6c2b24a1b4d90c65087ffb47b08225264f8c259cd878605ab9f7",
+      "capabilities": [
+        "generic"
+      ],
+      "source": "MIO-KITCHEN",
+      "license": "Apache-2.0",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "libffi.so",
+      "version": "bundled",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "86c0233fd829a3ad77a224bb398a46a0e0a1edeaa9aa576e72e53168fd9cc418",
+      "capabilities": [
+        "generic"
+      ],
+      "source": "MIO-KITCHEN",
+      "license": "Apache-2.0",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "liblz4.so",
+      "version": "bundled",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "a2af9afee3ec00f9e46685b25594a1daf5e90748eace41b34f29599d22a3e000",
+      "capabilities": [
+        "generic"
+      ],
+      "source": "MIO-KITCHEN",
+      "license": "Apache-2.0",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "liblzma.so.5",
+      "version": "bundled",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "48888ee1b91d6b4b843f679592550715dbf52997a6e5095a81db85fb53626981",
+      "capabilities": [
+        "generic"
+      ],
+      "source": "MIO-KITCHEN",
+      "license": "Apache-2.0",
+      "supports16KbPageSize": true
+    },
+    {
+      "name": "libz.so.1",
+      "version": "bundled",
+      "abi": [
+        "arm64-v8a",
+        "armeabi-v7a"
+      ],
+      "sha256": "ccc0a5c484020b92aaaba7916d706d5d5f667b1e252503332b9963d9128e096a",
+      "capabilities": [
+        "generic"
+      ],
+      "source": "MIO-KITCHEN",
+      "license": "Apache-2.0",
+      "supports16KbPageSize": true
+    }
+  ]
+}

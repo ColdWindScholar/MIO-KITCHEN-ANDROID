@@ -1,39 +1,120 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    // RU: Stage 16 — статический analysis для модуля pio.
+    // EN: Stage 16 — static analysis for the pio module.
+    id 'io.gitlab.arturbosch.detekt'
+    id 'org.jlleitschuh.gradle.ktlint'
+    // RU: Stage 17 — coverage reporting.
+    // EN: Stage 17 — coverage reporting.
+    id 'org.jetbrains.kotlinx.kover'
+}
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion '28.0.3'
+    namespace 'com.mio.kitchen'
+    compileSdk rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 28
+        applicationId 'com.mio.kitchen'
+        minSdk rootProject.ext.minSdkVersion
+        targetSdk rootProject.ext.targetSdkVersion
         versionCode 20240315
-        versionName "2.0.1"
+        versionName '2.0.1'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    compileOptions {
+        sourceCompatibility rootProject.ext.javaLanguageVersion
+        targetCompatibility rootProject.ext.javaLanguageVersion
+    }
+
+    kotlinOptions {
+        jvmTarget = rootProject.ext.kotlinCompilerJvmTarget
+    }
+
+    signingConfigs {
+        release {
+            def releaseStoreFile = project.findProperty('MIO_RELEASE_STORE_FILE') ?: System.getenv('MIO_RELEASE_STORE_FILE')
+            def releaseStorePassword = project.findProperty('MIO_RELEASE_STORE_PASSWORD') ?: System.getenv('MIO_RELEASE_STORE_PASSWORD')
+            def releaseKeyAlias = project.findProperty('MIO_RELEASE_KEY_ALIAS') ?: System.getenv('MIO_RELEASE_KEY_ALIAS')
+            def releaseKeyPassword = project.findProperty('MIO_RELEASE_KEY_PASSWORD') ?: System.getenv('MIO_RELEASE_KEY_PASSWORD')
+
+            if (releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword) {
+                storeFile file(releaseStoreFile)
+                storePassword releaseStorePassword.toString()
+                keyAlias releaseKeyAlias.toString()
+                keyPassword releaseKeyPassword.toString()
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
-            signingConfig signingConfigs.debug
+            if ((project.findProperty('MIO_RELEASE_STORE_FILE') ?: System.getenv('MIO_RELEASE_STORE_FILE'))) {
+                signingConfig signingConfigs.release
+            }
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         release_mini {
+            initWith release
             shrinkResources true
-            minifyEnabled = true
-            signingConfig signingConfigs.debug
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            if ((project.findProperty('MIO_RELEASE_STORE_FILE') ?: System.getenv('MIO_RELEASE_STORE_FILE'))) {
+                signingConfig signingConfigs.release
+            }
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    lintOptions {
+
+    // RU: Stage 16 — Android Lint теперь использует centralized config из
+    //     config/lint.xml. abortOnError оставлен false, чтобы не блокировать
+    //     сборку legacy-кода; tighten в следующих этапах.
+    // EN: Stage 16 — Android Lint now uses the centralized config from
+    //     config/lint.xml. abortOnError is still false so legacy code does
+    //     not block the build; tighten in later stages.
+    lint {
         abortOnError false
+        checkReleaseBuilds false
+        lintConfig rootProject.file(rootProject.ext.lintConfigPath)
+        warningsAsErrors false
+        xmlReport true
+        htmlReport true
     }
 
-    applicationVariants.all { variant ->
-        variant.outputs.all {
-            def apkReleaseDate = project.findProperty("apkReleaseDate")
+    // RU: Stage 16 — Detekt + Ktlint configuration для pio.
+    // EN: Stage 16 — Detekt + Ktlint configuration for pio.
+    detekt {
+        config.setFrom(rootProject.files(rootProject.ext.detektConfigPath))
+        buildUponDefaultConfig = true
+        parallel = true
+        reports {
+            xml.required = true
+            html.required = true
+            txt.required = false
+        }
+    }
+
+    ktlint {
+        version = '1.3.1'
+        android = true
+        ignoreFailures = true  // tighten in later stage
+        reporters {
+            reporter 'checkstyle'
+            reporter 'plain'
+        }
+    }
+
+    applicationVariants.configureEach { variant ->
+        variant.outputs.configureEach {
+            def apkReleaseDate = project.findProperty('apkReleaseDate')
 
             if (apkReleaseDate == null || apkReleaseDate.toString().trim().isEmpty()) {
-                apkReleaseDate = new Date().format("ddMMyy", java.util.TimeZone.getTimeZone("Europe/Riga"))
+                apkReleaseDate = new Date().format('ddMMyy', java.util.TimeZone.getTimeZone('Europe/Riga'))
             }
 
             outputFileName = "MIO-KITCHEN-${apkReleaseDate}-${variant.versionName}.apk"
@@ -42,16 +123,22 @@ android {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${rootProject.ext.kotlinxCoroutinesVersion}"
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'com.google.android.material:material:1.2.1'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation project(':common') // 添加依赖模块
-    implementation project(':krscript') // 添加依赖模块
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
-}
-repositories {
-    mavenCentral()
+    implementation "androidx.appcompat:appcompat:${rootProject.ext.androidxAppCompatVersion}"
+    implementation "androidx.legacy:legacy-support-v4:${rootProject.ext.androidxLegacySupportVersion}"
+    implementation "com.google.android.material:material:${rootProject.ext.materialVersion}"
+    implementation "androidx.constraintlayout:constraintlayout:${rootProject.ext.androidxConstraintLayoutVersion}"
+    // RU: lifecycle-viewmodel-ktx нужен для ViewModel + StateFlow в новом UI-слое.
+    // EN: lifecycle-viewmodel-ktx is required for ViewModel + StateFlow in the new UI layer.
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.8.7"
+    implementation "androidx.activity:activity-ktx:1.9.3"
+    implementation project(':common')
+    implementation project(':krscript')
+
+    testImplementation "junit:junit:${rootProject.ext.junitVersion}"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:${rootProject.ext.kotlinxCoroutinesVersion}"
+    androidTestImplementation "androidx.test.ext:junit:${rootProject.ext.androidxTestJunitVersion}"
+    androidTestImplementation "androidx.test.espresso:espresso-core:${rootProject.ext.espressoVersion}"
 }

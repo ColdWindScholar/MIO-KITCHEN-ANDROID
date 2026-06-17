@@ -1,33 +1,43 @@
 package com.omarea.common.shell
 
+import com.omarea.krscript.runtime.LegacyShellBridge
+
 /**
- * Created by Hello on 2018/01/23.
+ * RU: Legacy-фасад для совместимости со старым кодом, который использовал
+ *     `KeepShellPublic.checkRoot()` / `KeepShellPublic.doCmdSync()` /
+ *     `KeepShellPublic.tryExit()`.
+ *
+ * Stage 22: ранее `KeepShellPublic` владел двумя static `KeepShell`-
+ * инстансами (default + secondary) и использовал `GlobalScope` для записи в
+ * их streams. Теперь это тонкий объект, делегирующий в [LegacyShellBridge],
+ * который сам использует новый `ShellRuntime` API.
+ *
+ * ВАЖНО: `KeepShell.kt` удалён. Старый код, который явно конструировал
+ * `KeepShell(rootMode = ...)`, должен использовать `KeepShellRuntime`
+ * напрямую (Stage 6).
+ *
+ * EN: Legacy facade for compatibility with old code that used
+ *     `KeepShellPublic.checkRoot()` / `KeepShellPublic.doCmdSync()` /
+ *     `KeepShellPublic.tryExit()`.
+ *
+ * Stage 22: previously `KeepShellPublic` owned two static `KeepShell`
+ * instances (default + secondary) and used `GlobalScope` to write into their
+ * streams. Now it is a thin object delegating to [LegacyShellBridge], which
+ * itself uses the new `ShellRuntime` API.
+ *
+ * IMPORTANT: `KeepShell.kt` is removed. Old code that explicitly constructed
+ * `KeepShell(rootMode = ...)` must use `KeepShellRuntime` directly (Stage 6).
  */
 object KeepShellPublic {
 
-    private val defaultKeepShell = KeepShell()
-    private val secondaryKeepShell = KeepShell()
+    @JvmStatic
+    fun checkRoot(): Boolean = LegacyShellBridge.checkRoot()
 
-    fun getDefaultInstance(): KeepShell {
-        return if (defaultKeepShell.isIdle || !secondaryKeepShell.isIdle) {
-            defaultKeepShell
-        } else {
-            secondaryKeepShell
-        }
-    }
+    @JvmStatic
+    fun doCmdSync(cmd: String): String = LegacyShellBridge.doCmdSync(cmd)
 
-    //执行脚本
-    fun doCmdSync(cmd: String): String {
-        return getDefaultInstance().doCmdSync(cmd)
-    }
-
-    //执行脚本
-    fun checkRoot(): Boolean {
-        return defaultKeepShell.checkRoot()
-    }
-
+    @JvmStatic
     fun tryExit() {
-        defaultKeepShell.tryExit()
-        secondaryKeepShell.tryExit()
+        LegacyShellBridge.tryExit()
     }
 }

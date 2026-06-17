@@ -1,16 +1,25 @@
+# Gradle / Android Studio
+.gradle/
+.idea/
 *.iml
-.gradle
-.idea
 local.properties
-.idea/workspace.xml
-.idea/libraries
+
+# OS files
 .DS_Store
-build
-pio/build
-krscript/build
-common/build
-captures
-release
-release_mini
-gradle
+Thumbs.db
+
+# Build outputs
+build/
+*/build/
+captures/
+release/
+release_mini/
+release-apk/
+
+# Signing material must never be committed
+*.jks
+*.keystore
+release-keystore.jks
+
+# Legacy import artifacts
 app/build.gradle

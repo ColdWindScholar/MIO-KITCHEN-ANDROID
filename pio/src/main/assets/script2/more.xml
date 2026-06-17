@@ -5,7 +5,7 @@
             <title>@string/script_group_script_executor</title>
             <summary>@string/script_summary_custom_command</summary>
             <set>$TO</set>
-            <param name="TO" placeholder="@string/script_placeholder_custom_command" value="" requiret="true" />
+            <param name="TO" placeholder="@string/script_placeholder_custom_command" value="" required="true" />
         </action>
     </group>
 

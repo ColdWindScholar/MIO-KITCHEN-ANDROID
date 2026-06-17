@@ -31,6 +31,8 @@
     <string name="page_info_invalid">Page information is invalid.</string>
     <string name="file_read_permission_denied">File read permission was denied.</string>
     <string name="file_list_load_failed">Failed to load the file list.</string>
+    <string name="file_workspace_prepare">Preparing the selected file in the workspace...</string>
+    <string name="file_workspace_resolve_failed">Failed to prepare selected file: %1$s</string>
     <string name="join_qq_group">Join QQ group</string>
     <string name="support_us">Support us</string>
     <string name="power_off">Power off</string>

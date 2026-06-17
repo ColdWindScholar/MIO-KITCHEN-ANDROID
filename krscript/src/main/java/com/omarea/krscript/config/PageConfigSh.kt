@@ -31,13 +31,19 @@ class PageConfigSh(private var activity: Activity, private var pageConfigSh: Str
         val result = ScriptEnvironmen.executeResultRoot(activity, pageConfigSh, parentConfig)?.trim()
         if (result != null) {
             if (result.endsWith(".xml")) {
-                items = PageConfigReader(activity, result, parentConfig?.pageConfigDir).readConfigXml()
+                // RU: Stage 22 — заменяем legacy PageConfigReader на новый
+                //     PageConfigLoader (PageConfigRepository + RuntimeBinder).
+                // EN: Stage 22 — replace legacy PageConfigReader with the new
+                //     PageConfigLoader (PageConfigRepository + RuntimeBinder).
+                items = PageConfigLoader.load(activity, result, parentConfig?.pageConfigDir)
                 if (items == null) {
                     noReadPermission()
                 }
             } else if (result.startsWith("<?xml") && result.endsWith(">")) {
                 val inputStream = ByteArrayInputStream(result.toByteArray())
-                items = PageConfigReader(activity, inputStream).readConfigXml()
+                // RU: Stage 22 — то же самое для stream-варианта.
+                // EN: Stage 22 — same for the stream variant.
+                items = PageConfigLoader.loadFromStream(activity, inputStream)
             } else if (result.isNotEmpty()) {
                 pageConfigShError(result)
             }

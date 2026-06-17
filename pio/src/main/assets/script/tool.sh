@@ -126,16 +126,16 @@ cm() {
   done
 }
 flash_img() {
-  [[ -z ${iMG} ]] && fail_key shell_flash_no_target
+  [[ -z ${IMG} ]] && fail_key shell_flash_no_target
   IFS=$'\n'
   e=${IMG##*/}
   say shell_flash_selected_partition "$e"
   say shell_flash_file_path "$Brush_in"
   say shell_flash_check_image_exists
-  [[ ! -L "${i}MG" ]] && fail_key shell_flash_partition_missing "$e"
+  [[ ! -L "${IMG}" && ! -b "${IMG}" ]] && fail_key shell_flash_partition_missing "$e"
   if [[ -f "$Brush_in" ]]; then
     say shell_flash_start "$e"
-    dd if="$Brush_in" of="${i}MG"
+    dd if="$Brush_in" of="${IMG}"
     if [[ $CQ = 1 ]]; then
       say shell_reboot_recovery_countdown
       for i in $(seq 4 -1 1); do
@@ -296,25 +296,25 @@ findfile() {
   done
 }
 readsize() {
-  if [ -f $zml/$xm/dynamic_partitions_op_list ]; then
-    list=$zml/$xm/dynamic_partitions_op_list
+  if [ -f "$zml/$xm/dynamic_partitions_op_list" ]; then
+    list="$zml/$xm/dynamic_partitions_op_list"
   else
     list=/dev/null
   fi
   if [ "$psize" = "auto" ]; then
-    size=$(utils rsize $mdir/$xm/${1} 1 $list)
+    size=$(utils rsize "$mdir/$xm/${1}" 1 "$list")
   else
-    if [ -e $mdir/$xm/config/${1}_size.txt ]; then
-      size=$(cat $mdir/$xm/config/${1}_size.txt)
+    if [ -e "$mdir/$xm/config/${1}_size.txt" ]; then
+      size=$(cat "$mdir/$xm/config/${1}_size.txt")
     else
       warn_key shell_image_size_config_missing
-      size=$(utils rsize $mdir/$xm/${1} 1 $list)
+      size=$(utils rsize "$mdir/$xm/${1}" 1 "$list")
     fi
-    size=$(utils rsize $mdir/$xm/${1} 1 $list)
   fi
 }
 mkerofs() {
-  mkfs.erofs -z${type},${fze} -T 1230768000 --mount-point=/$1 --fs-config-file=$fs --file-contexts=$con $zml/$xm/${i}.img $mdir/$xm/${i}
+  partition="$1"
+  mkfs.erofs -z${type},${fze} -T 1230768000 --mount-point="/$partition" --fs-config-file="$fs" --file-contexts="$con" "$zml/$xm/${partition}.img" "$mdir/$xm/${partition}"
 }
 pack() {
   for i in ${UIMGS}; do
@@ -573,17 +573,18 @@ uimg() {
   fi
 }
 rboot() {
-  say shell_pack_boot_start "$i"
-  cd "$mdir/$xm/$i/ramdisk"
+  partition="$1"
+  say shell_pack_boot_start "$partition"
+  cd "$mdir/$xm/$partition/ramdisk"
   find | sed 1d | cpio -H newc -R 0:0 -o -F ../ramdisk-new.cpio
   cd ..
-  comp=$(sed -n '2p' "$mdir/$xm/config/${i}_info")
+  comp=$(sed -n '2p' "$mdir/$xm/config/${partition}_info")
   if [ "$comp" ]; then
     magiskboot compress=$comp ramdisk-new.cpio 2>&1
     if [ "$fixb" = "1" ]; then
       say shell_fix_build
-      magiskboot cpio $$mdir/$xm/$i/ramdisk.cpio "extract prop.default prop.default"
-      magiskboot cpio ramdisk.cpio "add 777 prop.default $$mdir/$xm/$i/prop.default"
+      magiskboot cpio "$mdir/$xm/$partition/ramdisk.cpio" "extract prop.default prop.default"
+      magiskboot cpio ramdisk.cpio "add 777 prop.default $mdir/$xm/$partition/prop.default"
       magiskboot cpio ramdisk.cpio "rm system/bin/variant-script.sh"
     fi
     if [ $? != 0 ] && $comp --help 2>/dev/null; then
@@ -591,17 +592,17 @@ rboot() {
       if [ $? != 0 ]; then
         say shell_repack_ramdisk_failed
         rm -f ramdisk-new.cpio
-        break
+        return 1
       fi
     fi
   fi
   ramdisk=$(ls ramdisk-new.cpio* 2>/dev/null | tail -n1)
   if [ "$ramdisk" ]; then
-    cp -f $ramdisk ramdisk.cpio
+    cp -f "$ramdisk" ramdisk.cpio
     case $comp in
     cpio) nocompflag="-n" ;;
     esac
-    magiskboot repack $nocompflag ${i}.img $zml/$xm/${i}_new.img 2>&1
+    magiskboot repack $nocompflag "${partition}.img" "$zml/$xm/${partition}_new.img" 2>&1
     say shell_done
     exit 0
   fi

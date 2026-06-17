@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import android.text.SpannableString
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +20,7 @@ import com.omarea.common.ui.ProgressBarDialog
 import com.omarea.common.ui.ThemeMode
 import com.omarea.krscript.R
 import com.omarea.krscript.executor.ScriptEnvironmen
+import com.omarea.krscript.executor.ShellExecutor
 import com.omarea.krscript.model.ActionNode
 import com.omarea.krscript.model.ActionParamInfo
 import com.omarea.krscript.model.AutoRunTask
@@ -29,6 +31,7 @@ import com.omarea.krscript.model.NodeInfoBase
 import com.omarea.krscript.model.PageNode
 import com.omarea.krscript.model.PickerNode
 import com.omarea.krscript.model.RunnableNode
+import com.omarea.krscript.model.ShellHandlerBase
 import com.omarea.krscript.model.SwitchNode
 
 class ActionListFragment : androidx.fragment.app.Fragment(), PageLayoutRender.OnItemClickListener {
@@ -405,14 +408,12 @@ class ActionListFragment : androidx.fragment.app.Fragment(), PageLayoutRender.On
         if (!(shellResult == "error" || shellResult == "null" || shellResult.isEmpty())) {
             for (item in shellResult.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()) {
                 if (item.contains("|")) {
-                    val itemSplit = item.split("\\|".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                    val itemSplit = item.split("|", limit = 2)
+                    val value = itemSplit[0].trim()
+                    val titleText = itemSplit.getOrElse(1) { value }.trim()
                     options.add(SelectItem().apply {
-                        var descText = itemSplit[0]
-                        if (itemSplit.isNotEmpty()) {
-                            descText = itemSplit[1]
-                        }
-                        title = descText
-                        value = itemSplit[0]
+                        title = if (titleText.isEmpty()) value else titleText
+                        this.value = value
                     })
                 } else {
                     options.add(SelectItem().apply {
@@ -439,15 +440,10 @@ class ActionListFragment : androidx.fragment.app.Fragment(), PageLayoutRender.On
 
     // 标识是否有隐藏任务在运行中
     private var hiddenTaskRunning = false
-    private fun actionExecute(nodeInfo: RunnableNode, script: String, onExit: Runnable, params: HashMap<String, String>?) {
-        val context = context!!
 
-         if (nodeInfo.shell == RunnableNode.shellModeHidden) {
-            if (hiddenTaskRunning) {
-                Toast.makeText(context, getString(R.string.kr_hidden_task_running), Toast.LENGTH_SHORT).show()
-            } else {
-                hiddenTaskRunning = true
-            }
+    private fun actionExecute(nodeInfo: RunnableNode, script: String, onExit: Runnable, params: HashMap<String, String>?) {
+        if (nodeInfo.shell == RunnableNode.shellModeHidden) {
+            runHiddenAction(nodeInfo, script, onExit, params)
         } else {
             val onDismiss = Runnable {
                 krScriptActionHandler?.onActionCompleted(nodeInfo)
@@ -457,6 +453,48 @@ class ActionListFragment : androidx.fragment.app.Fragment(), PageLayoutRender.On
             val dialog = DialogLogFragment.create(nodeInfo, onExit, onDismiss, script, params, darkMode)
             dialog.isCancelable = false
             dialog.show(fragmentManager!!, "")
+        }
+    }
+
+    private fun runHiddenAction(nodeInfo: RunnableNode, script: String, onExit: Runnable, params: HashMap<String, String>?) {
+        val context = context ?: return
+        if (hiddenTaskRunning) {
+            Toast.makeText(context, getString(R.string.kr_hidden_task_running), Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        hiddenTaskRunning = true
+
+        val onCompleted = Runnable {
+            Handler(context.mainLooper).post {
+                hiddenTaskRunning = false
+                if (isAdded) {
+                    onExit.run()
+                    krScriptActionHandler?.onActionCompleted(nodeInfo)
+                }
+            }
+        }
+
+        val shellHandler = object : ShellHandlerBase() {
+            override fun onProgress(current: Int, total: Int) {
+            }
+
+            override fun onStart(msg: Any?) {
+            }
+
+            override fun onStart(forceStop: Runnable?) {
+            }
+
+            override fun onExit(msg: Any?) {
+            }
+
+            override fun updateLog(msg: SpannableString?) {
+            }
+        }
+
+        val process = ShellExecutor().execute(context, nodeInfo, script, onCompleted, params, shellHandler)
+        if (process == null) {
+            hiddenTaskRunning = false
         }
     }
 }

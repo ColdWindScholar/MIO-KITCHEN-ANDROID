@@ -31,6 +31,8 @@
     <string name="page_info_invalid">页面信息无效。</string>
     <string name="file_read_permission_denied">没有读取文件的权限。</string>
     <string name="file_list_load_failed">获取文件列表失败。</string>
+    <string name="file_workspace_prepare">正在将所选文件准备到工作区...</string>
+    <string name="file_workspace_resolve_failed">无法准备所选文件：%1$s</string>
     <string name="join_qq_group">加入 QQ 群</string>
     <string name="support_us">捐赠我们</string>
     <string name="power_off">关机</string>

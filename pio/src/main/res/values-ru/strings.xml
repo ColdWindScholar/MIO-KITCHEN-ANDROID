@@ -31,6 +31,8 @@
     <string name="page_info_invalid">Информация о странице недействительна.</string>
     <string name="file_read_permission_denied">Разрешение на чтение файлов отклонено.</string>
     <string name="file_list_load_failed">Не удалось загрузить список файлов.</string>
+    <string name="file_workspace_prepare">Подготовка выбранного файла в рабочей папке...</string>
+    <string name="file_workspace_resolve_failed">Не удалось подготовить выбранный файл: %1$s</string>
     <string name="join_qq_group">Вступить в QQ-группу</string>
     <string name="support_us">Поддержать нас</string>
     <string name="power_off">Выключение</string>

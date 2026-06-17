@@ -3,40 +3,62 @@ package com.mio.kitchen
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
+import com.omarea.common.shared.AppLanguage
 import java.util.Locale
 
+/**
+ * RU: Android/UI-слой локализации приложения.
+ *
+ * Переводы остаются в отдельных Android resource-файлах `values*/strings.xml`.
+ * Этот объект хранит только список языков, показанных пользователю, связывает
+ * код языка с [Locale] и создаёт локализованный [Context]. Низкоуровневые ключи
+ * SharedPreferences и shell-переменные находятся в [AppLanguage].
+ *
+ * EN: Android/UI localization layer.
+ *
+ * Translations stay in separate Android `values*/strings.xml` resource files.
+ * This object only owns the language list shown to the user, maps language codes
+ * to [Locale], and creates a localized [Context]. Low-level SharedPreferences
+ * keys and shell environment variables are owned by [AppLanguage].
+ */
 object LanguageConfig {
-    private const val PREFS_NAME = "app_language"
-    private const val KEY_LANGUAGE = "language"
-    private const val DEFAULT_LANGUAGE = "en"
-
     data class LanguageOption(
         val code: String,
         val labelRes: Int,
         val locale: Locale
     )
 
-    val supportedLanguages = listOf(
+    val supportedLanguages: List<LanguageOption> = listOf(
         LanguageOption("en", R.string.language_english, Locale.ENGLISH),
         LanguageOption("ru", R.string.language_russian, Locale("ru")),
         LanguageOption("zh", R.string.language_chinese, Locale.SIMPLIFIED_CHINESE),
         LanguageOption("ja", R.string.language_japanese, Locale.JAPANESE)
     )
 
+    private fun normalizeLanguage(code: String?): String {
+        val normalized = code
+            ?.trim()
+            ?.replace('_', '-')
+            ?.toLowerCase(Locale.ROOT)
+            ?.substringBefore('-')
+            ?.takeIf { it.isNotEmpty() }
+            ?: AppLanguage.DEFAULT_LANGUAGE
+
+        return supportedLanguages.firstOrNull { it.code == normalized }?.code
+            ?: AppLanguage.DEFAULT_LANGUAGE
+    }
+
     fun getLanguage(context: Context): String {
-        val saved = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .getString(KEY_LANGUAGE, DEFAULT_LANGUAGE) ?: DEFAULT_LANGUAGE
-        return supportedLanguages.firstOrNull { it.code == saved }?.code ?: DEFAULT_LANGUAGE
+        return normalizeLanguage(AppLanguage.get(context))
     }
 
     fun setLanguage(context: Context, code: String): Boolean {
-        if (getLanguage(context) == code || supportedLanguages.none { it.code == code }) {
+        val normalized = normalizeLanguage(code)
+        if (getLanguage(context) == normalized) {
             return false
         }
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_LANGUAGE, code)
-            .apply()
+
+        AppLanguage.set(context, normalized)
         return true
     }
 

@@ -11,22 +11,41 @@ import android.os.Looper
 import android.util.TypedValue
 import android.view.View
 import android.widget.TextView
+import com.mio.kitchen.databinding.ActivitySplashBinding
 import com.mio.kitchen.permissions.CheckRootStatus
-import com.omarea.common.shell.ShellExecutor
+import com.mio.kitchen.ui.modern.AppRuntimeStore
 import com.omarea.common.shell.ShellTranslation
 import com.omarea.krscript.executor.ScriptEnvironmen
-import kotlinx.android.synthetic.main.activity_splash.start_logo
-import kotlinx.android.synthetic.main.activity_splash.start_state_text
+import com.omarea.krscript.runtime.LegacyShellBridge
 import java.io.BufferedReader
 import java.io.DataOutputStream
 
 class SplashActivity : Activity() {
+    private lateinit var binding: ActivitySplashBinding
+
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LanguageConfig.wrap(newBase))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // RU: Stage 20 — инициализируем AppRuntimeStore как можно раньше,
+        //     чтобы новые активности (FirmwareAnalysisActivity и др.) могли
+        //     читать DeviceProfile сразу.
+        // EN: Stage 20 — initialise AppRuntimeStore as early as possible so
+        //     that new activities (FirmwareAnalysisActivity and friends) can
+        //     read DeviceProfile immediately.
+        AppRuntimeStore.init(rootAvailable = null)
+        // RU: Stage 22 — инициализируем LegacyShellBridge. Ранее это делал
+        //     KrScriptConfig.init -> ScriptEnvironmen.init. Теперь
+        //     KrScriptConfig только хранит конфигурацию, а bridge
+        //     инициализируется явно.
+        // EN: Stage 22 — initialise LegacyShellBridge. Previously this was
+        //     done by KrScriptConfig.init -> ScriptEnvironmen.init. Now
+        //     KrScriptConfig only stores configuration, and the bridge is
+        //     initialised explicitly.
+        LegacyShellBridge.init(this)
 
         if (ScriptEnvironmen.isInited()) {
             if (isTaskRoot) {
@@ -35,7 +54,8 @@ class SplashActivity : Activity() {
             return
         }
 
-        setContentView(R.layout.activity_splash)
+        binding = ActivitySplashBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         updateThemeStyle()
 
         checkPermissions()
@@ -71,10 +91,15 @@ class SplashActivity : Activity() {
      * 开始检查必需权限
      */
     private fun checkPermissions() {
-        start_logo.visibility = View.VISIBLE
+        binding.startLogo.visibility = View.VISIBLE
         checkRoot(Runnable {
-            start_state_text.text = getString(R.string.pio_permission_checking)
+            binding.startStateText.text = getString(R.string.pio_permission_checking)
             hasRoot = true
+            // RU: Stage 20 — после проверки root обновляем AppRuntimeStore.
+            //     Legacy-путём остаётся `CheckRootStatus.lastCheckResult`.
+            // EN: Stage 20 — after the root check, refresh AppRuntimeStore.
+            //     The legacy path still uses `CheckRootStatus.lastCheckResult`.
+            AppRuntimeStore.updateRootStatus(hasRoot = true)
 
             /*
             checkFileWrite(Runnable {
@@ -95,10 +120,10 @@ class SplashActivity : Activity() {
      * 启动完成
      */
     private fun startToFinish() {
-        start_state_text.text = getString(R.string.pop_started)
+        binding.startStateText.text = getString(R.string.pop_started)
         val config = KrScriptConfig().init(this)
         if (config.beforeStartSh.isNotEmpty()) {
-            BeforeStartThread(this, config, UpdateLogViewHandler(start_state_text, Runnable {
+            BeforeStartThread(this, config, UpdateLogViewHandler(binding.startStateText, Runnable {
                 gotoHome()
             })).start()
         } else {
@@ -147,11 +172,30 @@ class SplashActivity : Activity() {
 
         override fun run() {
             try {
-                val process = if (CheckRootStatus.lastCheckResult) ShellExecutor.getSuperUserRuntime() else ShellExecutor.getRuntime()
+                // RU: Stage 23 — используем ScriptEnvironmen.getRuntime() (теперь
+                //     возвращает Process через Runtime.exec) вместо
+                //     ShellExecutor.getSuperUserRuntime/getRuntime. Это убирает
+                //     зависимость от common/shell/ShellExecutor.
+                // EN: Stage 23 — use ScriptEnvironmen.getRuntime() (now returns
+                //     a Process via Runtime.exec) instead of
+                //     ShellExecutor.getSuperUserRuntime/getRuntime. This removes
+                //     the dependency on common/shell/ShellExecutor.
+                val process = ScriptEnvironmen.getRuntime()
                 if (process != null) {
                     val outputStream = DataOutputStream(process.outputStream)
 
-                    ScriptEnvironmen.executeShell(context, outputStream, config.beforeStartSh, params, null, "pio-splash")
+                    // RU: Stage 23 — строим full streaming command через
+                    //     LegacyShellBridge и пишем в Process.stdin.
+                    // EN: Stage 23 — build the full streaming command via
+                    //     LegacyShellBridge and write into Process.stdin.
+                    val fullCommand = LegacyShellBridge.buildStreamingCommand(
+                        context = context,
+                        script = config.beforeStartSh,
+                        nodeInfoBase = null,
+                        tag = "pio-splash"
+                    )
+                    outputStream.write(fullCommand.toByteArray(Charsets.UTF_8))
+                    outputStream.flush()
 
                     val shellTranslation = ShellTranslation(context)
                     StreamReadThread(process.inputStream.bufferedReader(), updateLogViewHandler, shellTranslation).start()

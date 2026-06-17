@@ -31,6 +31,8 @@
     <string name="page_info_invalid">ページ情報が無効です。</string>
     <string name="file_read_permission_denied">ファイル読み取り権限が拒否されました。</string>
     <string name="file_list_load_failed">ファイル一覧の読み込みに失敗しました。</string>
+    <string name="file_workspace_prepare">選択したファイルをワークスペースに準備しています...</string>
+    <string name="file_workspace_resolve_failed">選択したファイルの準備に失敗しました: %1$s</string>
     <string name="join_qq_group">QQ グループに参加</string>
     <string name="support_us">支援する</string>
     <string name="power_off">電源を切る</string>
