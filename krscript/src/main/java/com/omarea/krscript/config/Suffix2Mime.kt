@@ -4,7 +4,7 @@ import java.util.Locale
 
 class Suffix2Mime {
     fun toMime(suffix: String?): String {
-        return when (suffix?.trim()?.trimStart('.')?.lowercase(Locale.ROOT)) {
+        return when (suffix?.trim()?.trimStart('.')?.toLowerCase(Locale.ROOT)) {
             "zip" -> "application/zip"
             "rar" -> "application/x-rar-compressed"
             "gz" -> "application/x-gzip"

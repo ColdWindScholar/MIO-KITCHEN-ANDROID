@@ -115,9 +115,8 @@ class RuntimeBinder(private val context: Context) : DynamicValueResolver {
             is ActionNode -> {
                 resolveRunnableDeferred(node)
                 node.params?.forEach { param ->
-                    val vs = param.valueShell
-                    if (!vs.isNullOrEmpty()) {
-                        param.value = resolveShellValue(vs)
+                    if (!param.valueShell.isNullOrEmpty()) {
+                        param.value = resolveShellValue(param.valueShell)
                     }
                     if (!param.optionsSh.isNullOrEmpty()) {
                         // Dynamic options are resolved at click time — leave the
@@ -127,16 +126,14 @@ class RuntimeBinder(private val context: Context) : DynamicValueResolver {
             }
             is SwitchNode -> {
                 resolveRunnableDeferred(node)
-                val gs = node.getState
-                if (!gs.isNullOrEmpty()) {
-                    val r = resolveShellValue(gs)
+                if (!node.getState.isNullOrEmpty()) {
+                    val r = resolveShellValue(node.getState)
                     node.checked = r != "error" && (r == "1" || r.equals("true", ignoreCase = true))
                 }
             }
             is PickerNode -> {
                 resolveRunnableDeferred(node)
-                val pgs = node.getState
-                if (!pgs.isNullOrEmpty()) node.value = resolveShellValue(pgs)
+                if (!node.getState.isNullOrEmpty()) node.value = resolveShellValue(node.getState)
             }
             is TextNode -> {
                 // TextNode rows may have dynamicTextSh — resolved at render time.
@@ -144,7 +141,7 @@ class RuntimeBinder(private val context: Context) : DynamicValueResolver {
         }
     }
 
-    private fun resolveRunnableDeferred(node: NodeInfoBase) {
+    private fun resolveRunnableDeferred(node: RunnableNode) {
         if (node.descSh.isNotEmpty()) node.desc = resolveShellValue(node.descSh)
         if (node.summarySh.isNotEmpty()) node.summary = resolveShellValue(node.summarySh)
     }

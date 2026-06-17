@@ -32,9 +32,8 @@ class CheckRootStatus(var context: Context, private var next: Runnable? = null) 
     private var therad: Thread? = null
     fun forceGetRoot() {
         if (lastCheckResult) {
-            val n = next
-            if (n != null) {
-                myHandler.post(n)
+            if (next != null) {
+                myHandler.post(next)
             }
         } else {
             var completed = false
@@ -47,9 +46,8 @@ class CheckRootStatus(var context: Context, private var next: Runnable? = null) 
                 completed = true
 
                 if (lastCheckResult) {
-                    val n2 = next
-                    if (n2 != null) {
-                        myHandler.post(n2)
+                    if (next != null) {
+                        myHandler.post(next)
                     }
                 } else {
                     myHandler.post {
@@ -64,12 +62,9 @@ class CheckRootStatus(var context: Context, private var next: Runnable? = null) 
                                 exitProcess(0)
                             }),
                             if (!context.resources.getBoolean(R.bool.force_root)) {
-                                DialogHelper.DialogButton(context.getString(R.string.btn_skip), {
-                                    val n3 = next
-                                    if (n3 != null) {
-                                        myHandler.post(n3)
-                                    }
-                                })
+                                DialogHelper.DialogButton(context.getString(R.string.btn_skip), {if (next != null) {
+                                    myHandler.post(next)
+                                }})
                             } else {null}
                         )
                     }

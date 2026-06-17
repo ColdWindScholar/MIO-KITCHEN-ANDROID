@@ -65,7 +65,7 @@ class DialogLogFragment : androidx.fragment.app.DialogFragment() {
                 }
 
                 val shellHandler = openExecutor(this)
-                ShellExecutor().execute(activity!!, this, script, onExit, params, shellHandler)
+                ShellExecutor().execute(activity, this, script, onExit, params, shellHandler)
             }
         } else {
             dismiss()
@@ -90,7 +90,7 @@ class DialogLogFragment : androidx.fragment.app.DialogFragment() {
             try {
                 val myClipboard: ClipboardManager = this.context!!.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val myClip: ClipData = ClipData.newPlainText("text", views.shellOutput.text.toString())
-                myClipboard.setPrimaryClip(myClip)
+                myClipboard.primaryClip = myClip
                 Toast.makeText(context, getString(R.string.copy_success), Toast.LENGTH_SHORT).show()
             } catch (ex: Exception) {
                 Toast.makeText(context, getString(R.string.copy_fail), Toast.LENGTH_SHORT).show()
