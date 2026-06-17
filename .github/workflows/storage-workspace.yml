@@ -1,0 +1,32 @@
+name: Storage Workspace Quality
+
+on:
+  push:
+    paths:
+      - 'common/src/main/java/com/omarea/common/storage/**'
+      - 'common/src/test/java/com/omarea/common/storage/**'
+      - 'pio/src/main/java/com/mio/kitchen/ActionPage.kt'
+      - 'pio/src/main/res/values*/strings.xml'
+      - 'tools/check-storage-workspace.py'
+      - 'docs/**'
+      - '.github/workflows/storage-workspace.yml'
+  pull_request:
+    paths:
+      - 'common/src/main/java/com/omarea/common/storage/**'
+      - 'common/src/test/java/com/omarea/common/storage/**'
+      - 'pio/src/main/java/com/mio/kitchen/ActionPage.kt'
+      - 'pio/src/main/res/values*/strings.xml'
+      - 'tools/check-storage-workspace.py'
+      - 'docs/**'
+      - '.github/workflows/storage-workspace.yml'
+
+jobs:
+  validate-storage-workspace:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Validate storage/workspace architecture
+        run: python3 tools/check-storage-workspace.py

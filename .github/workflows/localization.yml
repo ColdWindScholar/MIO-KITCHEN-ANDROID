@@ -1,0 +1,38 @@
+name: Localization quality
+
+on:
+  push:
+    paths:
+      - 'common/src/main/res/**'
+      - 'krscript/src/main/res/**'
+      - 'pio/src/main/res/**'
+      - 'common/src/main/java/com/omarea/common/shared/AppLanguage.kt'
+      - 'common/src/main/java/com/omarea/common/shell/ShellTranslation.kt'
+      - 'pio/src/main/java/com/mio/kitchen/LanguageConfig.kt'
+      - 'krscript/src/main/java/com/omarea/krscript/executor/ScriptEnvironmen.java'
+      - 'tools/validate-localization.py'
+      - 'docs/**'
+      - '.github/workflows/localization.yml'
+  pull_request:
+    paths:
+      - 'common/src/main/res/**'
+      - 'krscript/src/main/res/**'
+      - 'pio/src/main/res/**'
+      - 'common/src/main/java/com/omarea/common/shared/AppLanguage.kt'
+      - 'common/src/main/java/com/omarea/common/shell/ShellTranslation.kt'
+      - 'pio/src/main/java/com/mio/kitchen/LanguageConfig.kt'
+      - 'krscript/src/main/java/com/omarea/krscript/executor/ScriptEnvironmen.java'
+      - 'tools/validate-localization.py'
+      - 'docs/**'
+      - '.github/workflows/localization.yml'
+
+jobs:
+  validate-localization:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Validate localization resources and contracts
+        run: python3 tools/validate-localization.py
