@@ -135,7 +135,8 @@ class RuntimeBinder(private val context: Context) : DynamicValueResolver {
             }
             is PickerNode -> {
                 resolveRunnableDeferred(node)
-                if (!node.getState.isNullOrEmpty()) node.value = resolveShellValue(node.getState)
+                val pgs = node.getState
+                if (!pgs.isNullOrEmpty()) node.value = resolveShellValue(pgs)
             }
             is TextNode -> {
                 // TextNode rows may have dynamicTextSh — resolved at render time.
