@@ -114,7 +114,7 @@ class PageLayoutRender(private val mContext: Context,
                     parent.addView(uiRender)
                 }
             } catch (ex: Exception) {
-                Toast.makeText(mContext, mContext.getString(R.string.kr_page_render_error, it.title, ex.message), Toast.LENGTH_SHORT).show()
+                Toast.makeText(mContext, it.title + "界面渲染异常" + ex.message, Toast.LENGTH_SHORT).show()
             }
         }
     }

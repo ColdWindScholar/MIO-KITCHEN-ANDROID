@@ -190,7 +190,7 @@ public class MTDataFilesProvider extends DocumentsProvider {
     }
 
     public final void d(MatrixCursor matrixCursor, String str, File file) {
-        int i = 0;
+        int i;
         String name;
         if (file == null) {
             file = b(str, true);
@@ -208,13 +208,15 @@ public class MTDataFilesProvider extends DocumentsProvider {
         }
         if (file.isDirectory()) {
             if (file.canWrite()) {
-                i |= 8;
+                i = 8;
             }
-        } else if (file.canWrite()) {
-            i |= 2;
+        } else {
+            if (file.canWrite()) {
+                i = 2;
+            }
         }
-        File parentFile = file.getParentFile();
-        if (parentFile != null && parentFile.canWrite()) {
+        i = 0;
+        if (file.getParentFile().canWrite()) {
             i = i | 4 | 64;
         }
         String path = file.getPath();

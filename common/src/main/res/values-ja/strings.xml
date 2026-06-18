@@ -1,15 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="execute_success">実行しました</string>
-    <string name="execute_fail">実行に失敗しました</string>
-    <string name="execute_wait">実行中です。お待ちください...</string>
     <string name="btn_confirm">OK</string>
-    <string name="app_chooser_search_hint">アプリ名またはパッケージ名で検索</string>
     <string name="item_chooser_search_hint">項目を検索</string>
-    <string name="select_all">すべて選択</string>
-    <string name="help_title">ヘルプ</string>
     <string name="btn_cancel">キャンセル</string>
     <string name="btn_skip">スキップ</string>
-    <string name="dialog_title_placeholder">情報</string>
-    <string name="dialog_message_placeholder">メッセージ</string>
-    <string name="btn_got_it">了解</string>
 </resources>

@@ -5,7 +5,7 @@
     android:orientation="vertical">
     <!--<TextView
         android:textColor="?android:colorAccent"
-        android:text="@string/kr_params_required_message"
+        android:text="需要你输入以下参数才能继续执行"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp" />-->

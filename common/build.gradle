@@ -1,35 +1,13 @@
-plugins {
-    id 'com.android.library'
-    id 'org.jetbrains.kotlin.android'
-    // RU: Stage 16 — статический analysis для модуля common.
-    // EN: Stage 16 — static analysis for the common module.
-    id 'io.gitlab.arturbosch.detekt'
-    id 'org.jlleitschuh.gradle.ktlint'
-    // RU: Stage 17 — coverage reporting.
-    // EN: Stage 17 — coverage reporting.
-    id 'org.jetbrains.kotlinx.kover'
-}
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-android'
 
 android {
-    namespace 'com.omarea.common'
-    compileSdk rootProject.ext.compileSdkVersion
+    compileSdkVersion 28
 
     defaultConfig {
-        minSdk rootProject.ext.minSdkVersion
-        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-    }
-
-    buildFeatures {
-        viewBinding true
-    }
-
-    compileOptions {
-        sourceCompatibility rootProject.ext.javaLanguageVersion
-        targetCompatibility rootProject.ext.javaLanguageVersion
-    }
-
-    kotlinOptions {
-        jvmTarget = rootProject.ext.kotlinCompilerJvmTarget
+        minSdkVersion 21
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -38,45 +16,24 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         release_mini {
-            initWith release
-            minifyEnabled true
+            minifyEnabled = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
-    // RU: Stage 16 — Android Lint baseline для common.
-    // EN: Stage 16 — Android Lint baseline for common.
-    lint {
-        abortOnError false
-        lintConfig rootProject.file(rootProject.ext.lintConfigPath)
-    }
-
-    detekt {
-        config.setFrom(rootProject.files(rootProject.ext.detektConfigPath))
-        buildUponDefaultConfig = true
-        parallel = true
-    }
-
-    ktlint {
-        version = '1.3.1'
-        android = true
-        ignoreFailures = true
-    }
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${rootProject.ext.kotlinxCoroutinesVersion}"
-    implementation "androidx.appcompat:appcompat:${rootProject.ext.androidxAppCompatVersion}"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9"
+    // implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    // testImplementation 'junit:junit:4.13-beta-3'
+    // androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    // androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     api files('libs/overscroll-release-v1.1-20160904.jar')
-
-    testImplementation "junit:junit:${rootProject.ext.junitVersion}"
-    // RU: kotlinx-coroutines-core нужен JVM-тестам для runBlocking/Flow.
-    // EN: kotlinx-coroutines-core is needed by JVM tests for runBlocking/Flow.
-    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${rootProject.ext.kotlinxCoroutinesVersion}"
-    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:${rootProject.ext.kotlinxCoroutinesVersion}"
-    // RU: org.json доступен в Android runtime, но не в JVM stdlib — добавляем для unit-тестов.
-    // EN: org.json is available on Android runtime but not in the JVM stdlib — add it for unit tests.
-    testImplementation 'org.json:json:20240303'
-    androidTestImplementation "androidx.test.ext:junit:${rootProject.ext.androidxTestJunitVersion}"
-    androidTestImplementation "androidx.test.espresso:espresso-core:${rootProject.ext.espressoVersion}"
+    // implementation files('libs/fastscroll_v1.2_20160903.jar')
+}
+repositories {
+    mavenCentral()
 }

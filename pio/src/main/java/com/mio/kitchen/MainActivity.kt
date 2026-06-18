@@ -3,7 +3,6 @@ package com.mio.kitchen
 import android.Manifest
 import android.app.Activity
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -14,30 +13,20 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CompoundButton
-import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
-import com.mio.kitchen.databinding.ActivityMainBinding
 import com.mio.kitchen.ui.TabIconHelper
-import com.mio.kitchen.ui.modern.AppRuntimeStore
-import com.mio.kitchen.ui.modern.RuntimePermissionHelper
-import com.omarea.common.storage.AndroidStorageGateway
-import com.omarea.common.storage.StorageResolveOptions
-import com.omarea.common.storage.StorageResolveResult
+import com.omarea.common.shared.FilePathResolver
 import com.omarea.common.ui.DialogHelper
 import com.omarea.common.ui.ProgressBarDialog
-import com.omarea.krscript.config.PageConfigLoader
+import com.omarea.krscript.config.PageConfigReader
 import com.omarea.krscript.config.PageConfigSh
-import com.omarea.krscript.executor.ScriptEnvironmen
-import com.omarea.krscript.runtime.LegacyShellBridge
 import com.omarea.krscript.model.ClickableNode
 import com.omarea.krscript.model.KrScriptActionHandler
 import com.omarea.krscript.model.NodeInfoBase
@@ -45,39 +34,22 @@ import com.omarea.krscript.model.PageNode
 import com.omarea.krscript.model.RunnableNode
 import com.omarea.krscript.ui.ActionListFragment
 import com.omarea.krscript.ui.ParamsFileChooserRender
+import kotlinx.android.synthetic.main.activity_main.main_tabhost
+import kotlinx.android.synthetic.main.activity_main.main_tabhost_2
+import kotlinx.android.synthetic.main.activity_main.main_tabhost_3
 
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
     private val progressBarDialog = ProgressBarDialog(this)
     private var handler = Handler()
     private var krScriptConfig = KrScriptConfig()
-    private val storageGateway: AndroidStorageGateway by lazy { AndroidStorageGateway(applicationContext) }
 
     private fun checkPermission(permission: String): Boolean = PermissionChecker.checkSelfPermission(this, permission) == PermissionChecker.PERMISSION_GRANTED
 
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(LanguageConfig.wrap(newBase))
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // RU: Stage 22 — инициализируем LegacyShellBridge (замена старому
-        //     ScriptEnvironmen.init, который ранее вызывался из KrScriptConfig).
-        //     Bridge сам определяет root-статус и выбирает ShellRuntime.
-        // EN: Stage 22 — initialise LegacyShellBridge (replacement for the
-        //     old ScriptEnvironmen.init previously called from KrScriptConfig).
-        //     The bridge determines root status and picks a ShellRuntime.
-        LegacyShellBridge.init(this)
-        ScriptEnvironmen.refreshTranslations(this)
         ThemeModeState.switchTheme(this)
-        // RU: Stage 20 — обновляем AppRuntimeStore. Если SplashActivity уже
-        //     инициализировал его, это просто обновит device-часть.
-        // EN: Stage 20 — refresh AppRuntimeStore. If SplashActivity already
-        //     initialised it, this just refreshes the device portion.
-        AppRuntimeStore.init()
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_main)
 
         //supportActionBar!!.elevation = 0f
         val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
@@ -87,10 +59,10 @@ class MainActivity : AppCompatActivity() {
         krScriptConfig = KrScriptConfig()
 
 
-        binding.mainTabhost.setup()
-        val tabIconHelper = TabIconHelper(binding.mainTabhost, this)
+        main_tabhost.setup()
+        val tabIconHelper = TabIconHelper(main_tabhost, this)
 
-        binding.mainTabhost.setOnTabChangedListener {
+        main_tabhost.setOnTabChangedListener {
             tabIconHelper.updateHighlight()
         }
 
@@ -111,7 +83,7 @@ class MainActivity : AppCompatActivity() {
                     )!!, R.id.main_tabhost_2
                     )
                 } else {
-                    binding.mainTabhost2.visibility = View.GONE
+                    main_tabhost_2.visibility = View.GONE
                 }
 
                 if (pages != null && pages.size > 0) {
@@ -121,23 +93,15 @@ class MainActivity : AppCompatActivity() {
                     )!!, R.id.main_tabhost_3
                     )
                 } else {
-                    binding.mainTabhost3.visibility = View.GONE
+                    main_tabhost_3.visibility = View.GONE
                 }
             }
         }).start()
 
 
 
-        // RU: Stage 20 — заменяем устаревший прямой запрос storage-разрешений
-        //     на RuntimePermissionHelper, который учитывает targetSdk 35
-        //     (POST_NOTIFICATIONS на Android 13+, capped READ_EXTERNAL_STORAGE
-        //     на Android ≤ 12).
-        // EN: Stage 20 — replace the legacy direct storage-permission request
-        //     with RuntimePermissionHelper, which respects targetSdk 35
-        //     (POST_NOTIFICATIONS on Android 13+, capped READ_EXTERNAL_STORAGE
-        //     on Android ≤ 12).
-        if (!RuntimePermissionHelper.areAllGranted(this)) {
-            RuntimePermissionHelper.requestMissing(this, 111)
+        if (!(checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE) && checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE))) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE), 111)
         }
     }
 
@@ -148,11 +112,7 @@ class MainActivity : AppCompatActivity() {
             items = PageConfigSh(this, pageNode.pageConfigSh, null).execute()
         }
         if (items == null && pageNode.pageConfigPath.isNotEmpty()) {
-            // RU: Stage 22 — заменяем legacy PageConfigReader на новый
-            //     PageConfigLoader (PageConfigRepository + RuntimeBinder).
-            // EN: Stage 22 — replace legacy PageConfigReader with the new
-            //     PageConfigLoader (PageConfigRepository + RuntimeBinder).
-            items = PageConfigLoader.load(this@MainActivity, pageNode.pageConfigPath, null)
+            items = PageConfigReader(this.applicationContext, pageNode.pageConfigPath, null).readConfigXml()
         }
 
         return items
@@ -247,24 +207,32 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("extension", extension)
             startActivityForResult(intent, ACTION_FILE_PATH_CHOOSER_INNER)
         } catch (ex: java.lang.Exception) {
-            Toast.makeText(this, R.string.file_selector_open_failed, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "启动内置文件选择器失败！", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun chooseFilePath(fileSelectedInterface: ParamsFileChooserRender.FileSelectedInterface): Boolean {
-        return try {
-            this.fileSelectedInterface = fileSelectedInterface
-            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-            intent.addCategory(Intent.CATEGORY_OPENABLE)
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-            intent.type = fileSelectedInterface.mimeType() ?: "*/*"
-            intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
-            startActivityForResult(intent, ACTION_FILE_PATH_CHOOSER)
-            true
-        } catch (ex: java.lang.Exception) {
-            Toast.makeText(this, R.string.file_selector_open_failed, Toast.LENGTH_SHORT).show()
-            false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, getString(R.string.kr_write_external_storage), Toast.LENGTH_LONG).show()
+            requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 2)
+            return false
+        } else {
+            return try {
+                val suffix = fileSelectedInterface.suffix()
+                if (!suffix.isNullOrEmpty()) {
+                    chooseFilePath(suffix)
+                } else {
+                    val intent = Intent(Intent.ACTION_GET_CONTENT)
+                    intent.type = fileSelectedInterface.mimeType()
+                    if (intent.type == null) {intent.type = "*/*"}
+                    intent.addCategory(Intent.CATEGORY_OPENABLE)
+                    startActivityForResult(intent, ACTION_FILE_PATH_CHOOSER)
+                }
+                this.fileSelectedInterface = fileSelectedInterface
+                true
+            } catch (ex: java.lang.Exception) {
+                false
+            }
         }
     }
 
@@ -272,11 +240,12 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == ACTION_FILE_PATH_CHOOSER) {
             val result = if (data == null || resultCode != Activity.RESULT_OK) null else data.data
             if (fileSelectedInterface != null && result != null) {
-                resolveSelectedUri(result, data?.flags ?: 0)
+                fileSelectedInterface?.onFileSelected(getPath(result))
             } else {
                 fileSelectedInterface?.onFileSelected(null)
-                this.fileSelectedInterface = null
             }
+
+            this.fileSelectedInterface = null
         } else if (requestCode == ACTION_FILE_PATH_CHOOSER_INNER) {
             val absPath = if (data == null || resultCode != Activity.RESULT_OK) null else data.getStringExtra("file")
             fileSelectedInterface?.onFileSelected(absPath)
@@ -285,35 +254,12 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-    private fun resolveSelectedUri(uri: Uri, intentFlags: Int) {
-        progressBarDialog.showDialog(getString(R.string.file_workspace_prepare))
-        Thread {
-            storageGateway.persistReadPermission(uri, intentFlags)
-            val result = storageGateway.resolveUriForShell(
-                uri,
-                StorageResolveOptions(
-                    preferLegacyDirectPath = false,
-                    copyContentUriToWorkspace = true,
-                    computeSha256 = true
-                )
-            )
-
-            handler.post {
-                progressBarDialog.hideDialog()
-                when (result) {
-                    is StorageResolveResult.Resolved -> fileSelectedInterface?.onFileSelected(result.shellPath)
-                    is StorageResolveResult.Failed -> {
-                        Toast.makeText(
-                            this,
-                            getString(R.string.file_workspace_resolve_failed, result.message),
-                            Toast.LENGTH_LONG
-                        ).show()
-                        fileSelectedInterface?.onFileSelected(null)
-                    }
-                }
-                this.fileSelectedInterface = null
-            }
-        }.start()
+    private fun getPath(uri: Uri): String? {
+        return try {
+            FilePathResolver().getPath(this, uri)
+        } catch (ex: Exception) {
+            null
+        }
     }
 
     fun openPage(pageNode: PageNode) {
@@ -353,15 +299,9 @@ class MainActivity : AppCompatActivity() {
                 val layoutInflater = LayoutInflater.from(this)
                 val layout = layoutInflater.inflate(R.layout.dialog_about, null)
                 val transparentUi = layout.findViewById<CompoundButton>(R.id.transparent_ui)
-                val languageSpinner = layout.findViewById<Spinner>(R.id.language_spinner)
                 val themeConfig = ThemeConfig(this)
                 val add = layout.findViewById<Button>(R.id.button_add_qq)
                 val wxpay = layout.findViewById<Button>(R.id.button_juanzeng)
-                val languageLabels = LanguageConfig.supportedLanguages.map { getString(it.labelRes) }
-                val languageAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, languageLabels)
-                languageAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                languageSpinner.adapter = languageAdapter
-                languageSpinner.setSelection(LanguageConfig.getSelectedIndex(this), false)
                 wxpay.setOnClickListener{
                     Toast.makeText(this@MainActivity, if (juanzen()) {
                         getString(R.string.thanks_for_your_support)} else {
@@ -383,20 +323,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 transparentUi.isChecked = themeConfig.getAllowTransparentUI()
 
-                val dialog = DialogHelper.customDialog(this, layout)
-                languageSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                        val selectedLanguage = LanguageConfig.supportedLanguages[position].code
-                        if (LanguageConfig.setLanguage(this@MainActivity, selectedLanguage)) {
-                            ScriptEnvironmen.refreshTranslations(LanguageConfig.wrap(applicationContext))
-                            dialog.dismiss()
-                            recreate()
-                        }
-                    }
-
-                    override fun onNothingSelected(parent: AdapterView<*>?) {
-                    }
-                }
+                DialogHelper.customDialog(this, layout)
             }
             R.id.option_menu_reboot -> {
                 DialogPower(this).showPowerMenu()

@@ -1,111 +1,112 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <resource dir="file:///android_asset/script" />
-<group title="@string/script_group_module_features">
-    <page reload="true" config-sh="script/tool.sh module" title="@string/script_page_modules" desc="@string/script_page_modules_desc"/>
+<group title="模块功能">
+    <page reload="true" config-sh="script/tool.sh module" title="模块" desc="可安装mpk模块"/>
 </group>
 
-<group title="@string/script_group_extract_menu">
-    <action>
-        <title>@string/script_action_extract_rom</title>
+<group title="提取菜单">
+ <action>
+        <title>提取ROM</title>
         <set>script/tool.sh UN</set>
     </action>
     <action>
-        <title>@string/script_action_unpack_br</title>
+        <title>解包br</title>
         <set>script/tool.sh zdyfj</set>
-        <param name="cleanup" label="@string/script_label_delete_source" type="checkbox" />
-        <param name="zdy" title="@string/script_title_select_files_multi" options-sh="script/tool.sh new.dat.br" desc="@string/script_desc_auto_detect" required="true" multiple="true"/>
+        <param name="cleanup" label="删除源文件" type="checkbox" />
+        <param name="zdy" title="请选择文件支持多选：" options-sh="script/tool.sh new.dat.br" desc="自动识别" required="true" multiple="true"/>
     </action>
 
     <action>
-        <title>@string/script_action_unpack_dat</title>
+        <title>解包dat</title>
         <set>script/tool.sh zdyfj</set>
-        <param name="cleanup" label="@string/script_label_delete_source" type="checkbox" />
-        <param name="zdy" title="@string/script_title_select_dat_multi" options-sh="script/tool.sh new.dat" desc="@string/script_desc_detect_project_files" required="true" multiple="true"/>
+        <param name="cleanup" label="删除源文件" type="checkbox" />
+        <param name="zdy" title="请选择DAT文件支持多选：" options-sh="script/tool.sh new.dat" desc="识别MIO工程路径下的文件" required="true" multiple="true"/>
     </action>
-
-    <action>
-        <title>@string/script_action_extract_super_payload</title>
+    
+      <action>
+        <title>提取super/payload</title>
         <set>script/tool.sh tqdgjx</set>
-        <param name="qptq" label="@string/script_label_extract_all" type="switch" />
-        <param name="del" label="@string/script_label_delete_source" type="switch" />
-        <param name="tqjx" title="@string/script_title_select_extract_image" options-sh="script/tool.sh dg" desc="@string/script_desc_auto_detect" required="true" multiple="true"/>
-        <param name="jxs" title="@string/script_title_select_partitions" options-sh="script/tool.sh readdt" desc="@string/script_desc_auto_detect" required="true" multiple="true"/>
+        <param name="qptq" label="全盘提取" type="switch" />
+        <param name="del" label="删除源文件" type="switch" />
+        <param name="tqjx" title="请选择要提取镜像" options-sh="script/tool.sh dg" desc="自动" required="true" multiple="true"/>
+        <param name="jxs" title="请选择要提取的分区" options-sh="script/tool.sh readdt" desc="自动" required="true" multiple="true"/>
     </action>
-
+    
     <action>
-        <title>@string/script_action_unpack_img</title>
+        <title>解包img</title>
         <set>script/tool.sh zdyfj</set>
-        <param name="cleanup" label="@string/script_label_delete_source" type="checkbox" />
-        <param name="IMG" title="@string/script_title_select_files_multi" options-sh="script/tool.sh img" desc="@string/script_desc_detect_img_project_files" required="true" multiple="true"/>
+        <param name="cleanup" label="删除源文件" type="checkbox" />
+        <param name="IMG" title="请选择IMG文件支持多选：" options-sh="script/tool.sh img" desc="识别MIO工程路径下的文件，工具自动识别img格式进行提取" required="true" multiple="true"/>
     </action>
+
 </group>
 
-<group title="@string/script_group_pack_menu">
+<group title="打包菜单">
+
     <action>
-        <title>@string/script_action_pack_image</title>
+        <title>打包镜像</title>
         <set>script/tool.sh pack</set>
-        <param name="UIMGS" options-sh="script/tool.sh lsmdir" desc="@string/script_desc_multi_pack_auto_detect" required="true" multiple="true"/>
-        <param name="dbfs" label="@string/script_label_pack_method" desc="@string/script_desc_ext4_only">
-            <option value="mkeimg">mke2fs+e2fsdroid</option>
-            <option value="make_ext4">make_ext4fs</option>
+        <param name="UIMGS" options-sh="script/tool.sh lsmdir" desc="支持多个打包，工具自动识别镜像格式打包" required="true" multiple="true"/>
+        <param name="dbfs" label="打包方式" desc="注：仅打包ext4时生效"  >
+             <option value="mkeimg">mke2fs+e2fsdroid</option>
+             <option value="make_ext4">make_ext4fs</option>
         </param>
-        <param name="jxys" label="@string/script_label_image_compression" type="switch" />
-        <param name="del" label="@string/script_label_delete_source" type="switch" />
-        <param name="zhua" label="@string/script_label_erofs_ext_convert_pack" type="switch" />
-        <param name="fixb" label="@string/script_label_fix_build" desc="@string/script_desc_ext4_only" type="switch" />
-        <param name="Reading" label="@string/script_label_partition_read_write" desc="@string/script_desc_ext4_only">
-            <option value="ro">@string/script_option_read_only</option>
-            <option value="rw">@string/script_option_read_write</option>
+        <param name="jxys" label="镜像压缩" type="switch" />
+        <param name="del" label="删除源文件" type="switch" />
+        <param name="zhua" label="Erofs-Ext转化打包" type="switch" />
+        <param name="fixb" label="修复build" desc="注：仅打包boot时生效" type="switch" />
+        <param name="Reading" label="分区读写" desc="注：仅打包ext4时生效"  >
+             <option value="ro">只读</option>
+             <option value="rw">读写</option>
         </param>
-        <param name="psize" label="@string/script_label_pack_size" desc="@string/script_desc_ext4_only">
-            <option value="auto">@string/script_option_auto_size</option>
-            <option value="orig">@string/script_option_original_img_size</option>
+        <param name="psize" label="打包大小" desc="注：仅打包ext4时生效" >
+             <option value="auto" >自动计算大小</option>
+             <option value="orig" >原img大小</option>
         </param>
-        <param name="img_type" label="@string/script_label_pack_format" desc="@string/script_desc_ext4_only">
-            <option value="raw">raw</option>
-            <option value="sparse">sparse</option>
+        <param name="img_type" label="打包格式" desc="注：仅打包ext4,erofs时生效" >
+             <option value="raw" >raw</option>
+             <option value="sparse" >sparse</option>
         </param>
-        <param name="fze" label="@string/script_label_erofs_compression_level" value="8" desc="@string/script_desc_ext4_only" />
-        <param name="type" label="@string/script_label_erofs_compression_method" desc="@string/script_desc_ext4_only">
-            <option value="lz4hc">lz4hc</option>
-            <option value="lz4">lz4</option>
-            <option value="lzma">lzma</option>
-            <option value="deflate">deflate</option>
+        <param name="fze" label="erofs压缩等级" value="8" desc="注：仅打包erofs时生效" />
+        <param name="type" label="erofs压缩方式" desc="注：仅打包erofs时生效" >
+             <option value="lz4hc" >lz4hc</option>
+             <option value="lz4" >lz4</option>
+             <option value="lzma" >lzma</option>
+            <option value="deflate" >deflate</option>
         </param>
+       
     </action>
-
     <action>
-        <title>@string/script_action_pack_super</title>
+        <title>打包super.img</title>
         <set>script/tool.sh packsuper</set>
-        <param name="type" label="@string/script_label_pack_type">
-            <option value="A">a_only</option>
-            <option value="AB">ab</option>
-            <option value="VAB">virtual_ab</option>
+        <param name="type" label="打包类型" >
+             <option value="A">a_only</option>
+             <option value="AB">ab</option>
+             <option value="VAB">virtual_ab</option>
         </param>
-        <param name="from" label="@string/script_label_pack_format">
-            <option value="sparse">sparse</option>
-            <option value="raw">raw</option>
+        <param name="from" label="打包格式" >
+             <option value="sparse">sparse</option>
+             <option value="raw">raw</option>
         </param>
-        <param name="super_size" required="true" value="12884901888" label="@string/script_label_super_total_size" desc="@string/script_desc_default_bytes" />
-        <param name="super_group" required="true" value="main" label="@string/script_label_dynamic_partition_group" desc="@string/script_desc_suitable_size" />
-        <param name="simg" title="@string/script_title_select_pack_img" options-sh="script/tool.sh img" desc="@string/script_desc_do_not_select_unsupported_image" required="true" multiple="true"/>
+        <param name="super_size" required="true" value="12884901888" label="super.img总大小" desc="默认12884901888单位b" />
+        <param name="super_group" required="true" value="main" label="动态分区簇名" desc="适当大小" />
+        <param name="simg" title="请选择要打包的IMG文件：" options-sh="script/tool.sh img" desc="请勿选择不支持的镜像" required="true" multiple="true"/>
     </action>
-</group>
-
-<group title="@string/script_group_format_conversion">
+    </group>
+<group title="格式转换">
     <action>
-        <title>@string/script_action_img_conversion</title>
+        <title>IMG转换</title>
         <set>script/tool.sh gszh</set>
-        <param name="del" label="@string/script_label_delete_source" type="switch" />
-        <param name="gs" label="@string/script_label_conversion_format" desc="@string/script_desc_erofs_not_supported">
-            <option value="dat">dat</option>
-            <option value="br">br</option>
-            <option value="sparse">sparse</option>
-            <option value="raw">raw</option>
-            <option value="zstd">zstd</option>
+        <param name="del" label="删除源文件" type="switch" />
+        <param name="gs" label="转换格式" desc="erofs镜像不支持转换" >
+             <option value="dat" >dat</option>
+             <option value="br" >br</option>
+             <option value="sparse" >sparse</option>
+             <option value="raw" >raw</option>
+             <option value="zstd" >zstd</option>
         </param>
-        <param name="brlv" required="true" value="3" label="@string/script_label_br_compression_level" type="seekbar" min="0" max="9" desc="@string/script_desc_number_higher_slower"/>
-        <param name="zstdle" required="true" value="3" label="@string/script_label_zstd_compression_level" type="seekbar" min="0" max="9" desc="@string/script_desc_number_higher_slower"/>
-        <param name="IMG" title="@string/script_title_select_files_multi" options-sh="script/tool.sh img" desc="@string/script_desc_detect_project_files" required="true" multiple="true"/>
+         <param name="brlv" required="true" value="3" label="BR压缩等级" type="seekbar" min="0" max="9" desc="注：数字越大压缩越慢，自行决定！"/>
+         <param name="zstdle" required="true" value="3" label="ZSTD压缩等级" type="seekbar" min="0" max="9" desc="注：数字越大压缩越慢，自行决定！"/>
+        <param name="IMG" title="请选择IMG文件支持多选：" options-sh="script/tool.sh img" desc="识别MIO工程路径下的文件" required="true" multiple="true"/>
     </action>
 </group>

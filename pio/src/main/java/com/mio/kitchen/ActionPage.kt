@@ -18,12 +18,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
-import com.omarea.common.storage.AndroidStorageGateway
-import com.omarea.common.storage.StorageResolveOptions
-import com.omarea.common.storage.StorageResolveResult
+import com.omarea.common.shared.FilePathResolver
 import com.omarea.common.ui.ProgressBarDialog
 import com.omarea.krscript.config.IconPathAnalysis
-import com.omarea.krscript.config.PageConfigLoader
+import com.omarea.krscript.config.PageConfigReader
 import com.omarea.krscript.config.PageConfigSh
 import com.omarea.krscript.executor.ScriptEnvironmen
 import com.omarea.krscript.model.AutoRunTask
@@ -38,21 +36,15 @@ import com.omarea.krscript.ui.ActionListFragment
 import com.omarea.krscript.ui.DialogLogFragment
 import com.omarea.krscript.ui.PageMenuLoader
 import com.omarea.krscript.ui.ParamsFileChooserRender
-import com.mio.kitchen.databinding.ActivityActionPageBinding
+import kotlinx.android.synthetic.main.activity_action_page.action_page_fab
 
 
 class ActionPage : AppCompatActivity() {
-    private lateinit var binding: ActivityActionPageBinding
     private val progressBarDialog = ProgressBarDialog(this)
     private var actionsLoaded = false
     private var handler = Handler()
     private lateinit var currentPageConfig: PageNode
     private var autoRunItemId = ""
-    private val storageGateway: AndroidStorageGateway by lazy { AndroidStorageGateway(applicationContext) }
-
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(LanguageConfig.wrap(newBase))
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,8 +64,7 @@ class ActionPage : AppCompatActivity() {
 
         ThemeModeState.switchTheme(this)
 
-        binding = ActivityActionPageBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_action_page)
         val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
         setTitle(R.string.app_name)
@@ -110,7 +101,7 @@ class ActionPage : AppCompatActivity() {
                     }
                     currentPageConfig = page
                 } else {
-                    Toast.makeText(this, R.string.page_info_invalid, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "页面信息无效", Toast.LENGTH_SHORT).show()
                     finish()
                 }
             }
@@ -172,7 +163,7 @@ class ActionPage : AppCompatActivity() {
             intent.putExtra("mode", 0)
             startActivityForResult(intent, ACTION_FILE_PATH_CHOOSER_INNER)
         } catch (ex: Exception) {
-            Toast.makeText(this, R.string.file_selector_open_failed, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "启动内置文件选择器失败！", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -182,7 +173,7 @@ class ActionPage : AppCompatActivity() {
             intent.putExtra("mode", 1)
             startActivityForResult(intent, ACTION_FILE_PATH_CHOOSER_INNER)
         } catch (ex: Exception) {
-            Toast.makeText(this, R.string.file_selector_open_failed, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "启动内置文件选择器失败！", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -191,7 +182,7 @@ class ActionPage : AppCompatActivity() {
     // 右上角菜单的创建
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         if (menuOptions == null) {
-            menuOptions = PageMenuLoader(this@ActionPage, currentPageConfig).load()
+            menuOptions = PageMenuLoader(applicationContext, currentPageConfig).load()
         }
 
         if (menuOptions != null && menu != null) {
@@ -209,7 +200,7 @@ class ActionPage : AppCompatActivity() {
     }
 
     private fun addFab(menuOption: PageMenuOption) {
-        binding.actionPageFab.run {
+        action_page_fab.run {
             visibility = View.VISIBLE
             setOnClickListener {
                 onMenuItemClick(menuOption)
@@ -320,34 +311,36 @@ class ActionPage : AppCompatActivity() {
     }
 
     private fun chooseFilePath(fileSelectedInterface: ParamsFileChooserRender.FileSelectedInterface): Boolean {
-        return try {
-            if (fileSelectedInterface.type() == ParamsFileChooserRender.FileSelectedInterface.TYPE_FOLDER) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissions(arrayOf(READ_EXTERNAL_STORAGE), 2)
-                    Toast.makeText(this, getString(R.string.kr_write_external_storage), Toast.LENGTH_LONG).show()
-                    return false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(READ_EXTERNAL_STORAGE), 2)
+            Toast.makeText(this, getString(R.string.kr_write_external_storage), Toast.LENGTH_LONG).show()
+            return false
+        } else {
+            return try {
+                if (fileSelectedInterface.type() == ParamsFileChooserRender.FileSelectedInterface.TYPE_FOLDER) {
+                    chooseFolderPath()
+                } else {
+                    val suffix = fileSelectedInterface.suffix()
+                    if (!suffix.isNullOrEmpty()) {
+                        chooseFilePath(suffix)
+                    } else {
+                        val intent = Intent(Intent.ACTION_GET_CONTENT)
+                        val mimeType = fileSelectedInterface.mimeType()
+                        if (mimeType != null) {
+                            intent.type = mimeType
+                        } else {
+                            intent.type = "*/*"
+                        }
+                        intent.addCategory(Intent.CATEGORY_OPENABLE)
+                        startActivityForResult(intent, ACTION_FILE_PATH_CHOOSER)
+                    }
                 }
                 this.fileSelectedInterface = fileSelectedInterface
-                chooseFolderPath()
-            } else {
-                this.fileSelectedInterface = fileSelectedInterface
-                openSystemFileChooser(fileSelectedInterface)
+                true
+            } catch (ex: java.lang.Exception) {
+                false
             }
-            true
-        } catch (ex: java.lang.Exception) {
-            Toast.makeText(this, R.string.file_selector_open_failed, Toast.LENGTH_SHORT).show()
-            false
         }
-    }
-
-    private fun openSystemFileChooser(fileSelectedInterface: ParamsFileChooserRender.FileSelectedInterface) {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-        intent.addCategory(Intent.CATEGORY_OPENABLE)
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-        intent.type = fileSelectedInterface.mimeType() ?: "*/*"
-        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
-        startActivityForResult(intent, ACTION_FILE_PATH_CHOOSER)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -355,12 +348,13 @@ class ActionPage : AppCompatActivity() {
             val result = if (data == null || resultCode != Activity.RESULT_OK) null else data.data
             if (fileSelectedInterface != null) {
                 if (result != null) {
-                    resolveSelectedUri(result, data?.flags ?: 0)
+                    val absPath = getPath(result)
+                    fileSelectedInterface?.onFileSelected(absPath)
                 } else {
                     fileSelectedInterface?.onFileSelected(null)
-                    this.fileSelectedInterface = null
                 }
             }
+            this.fileSelectedInterface = null
         } else if (requestCode == ACTION_FILE_PATH_CHOOSER_INNER) {
             val absPath = if (data == null || resultCode != Activity.RESULT_OK) null else data.getStringExtra("file")
             fileSelectedInterface?.onFileSelected(absPath)
@@ -369,55 +363,12 @@ class ActionPage : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-    private fun resolveSelectedUri(uri: Uri, intentFlags: Int) {
-        showDialog(getString(R.string.file_workspace_prepare))
-        Thread {
-            storageGateway.persistReadPermission(uri, intentFlags)
-            val result = storageGateway.resolveUriForShell(
-                uri,
-                StorageResolveOptions(
-                    preferLegacyDirectPath = false,
-                    copyContentUriToWorkspace = true,
-                    computeSha256 = true
-                )
-            )
-
-            handler.post {
-                hideDialog()
-                when (result) {
-                    is StorageResolveResult.Resolved -> {
-                        // RU: Stage 20 — регистрируем выбранную прошивку в
-                        //     AppRuntimeStore. Анализ выполняется в background-
-                        //     потоке, чтобы не блокировать UI; на failure просто
-                        //     логируем (legacy-путь уже получил shellPath).
-                        // EN: Stage 20 — register the picked firmware in
-                        //     AppRuntimeStore. Analysis runs on a background
-                        //     thread so it does not block the UI; on failure we
-                        //     just log (the legacy path already has shellPath).
-                        val shellPath = result.shellPath
-                        Thread {
-                            try {
-                                com.mio.kitchen.ui.modern.AppRuntimeStore
-                                    .setFirmware(shellPath)
-                            } catch (_: Throwable) {
-                                // Best-effort — analysis failures here must not
-                                // block the legacy path.
-                            }
-                        }.start()
-                        fileSelectedInterface?.onFileSelected(shellPath)
-                    }
-                    is StorageResolveResult.Failed -> {
-                        Toast.makeText(
-                            this,
-                            getString(R.string.file_workspace_resolve_failed, result.message),
-                            Toast.LENGTH_LONG
-                        ).show()
-                        fileSelectedInterface?.onFileSelected(null)
-                    }
-                }
-                this.fileSelectedInterface = null
-            }
-        }.start()
+    private fun getPath(uri: Uri): String? {
+        return try {
+            FilePathResolver().getPath(this, uri)
+        } catch (ex: java.lang.Exception) {
+            null
+        }
     }
 
     private fun showDialog(msg: String) {
@@ -458,11 +409,7 @@ class ActionPage : AppCompatActivity() {
                 }
 
                 if (items == null && pageConfigPath.isNotEmpty()) {
-                    // RU: Stage 22 — заменяем legacy PageConfigReader на новый
-                    //     PageConfigLoader (PageConfigRepository + RuntimeBinder).
-                    // EN: Stage 22 — replace legacy PageConfigReader with the new
-                    //     PageConfigLoader (PageConfigRepository + RuntimeBinder).
-                    items = PageConfigLoader.load(this@ActionPage, pageConfigPath, pageConfigDir)
+                    items = PageConfigReader(applicationContext, pageConfigPath, pageConfigDir).readConfigXml()
                 }
 
                 if (afterRead.isNotEmpty()) {

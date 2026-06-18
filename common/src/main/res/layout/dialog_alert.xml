@@ -26,7 +26,7 @@
                 style="@style/textTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/dialog_title_placeholder" />
+                android:text="提示信息" />
             <TextView
                 android:id="@+id/confirm_message"
                 android:textIsSelectable="true"
@@ -34,7 +34,7 @@
                 android:paddingEnd="16dp"
                 android:paddingTop="8dp"
                 android:paddingBottom="16dp"
-                android:text="@string/dialog_message_placeholder"
+                android:text="提示内容"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
@@ -54,7 +54,7 @@
                 android:id="@+id/btn_confirm"
                 android:layout_marginStart="0dp"
                 style="@style/dialogConfirmBtn"
-                android:text="@string/btn_confirm">
+                android:text="确定">
             </Button>
         </LinearLayout>
 

@@ -33,10 +33,10 @@ class ParamsSwitch(private var actionParamInfo: ActionParamInfo, private var con
      */
     private fun getCheckState(actionParamInfo: ActionParamInfo, defaultValue: Boolean): Boolean {
         if (actionParamInfo.valueFromShell != null) {
-            return actionParamInfo.valueFromShell == "1" || actionParamInfo.valueFromShell!!.lowercase(
+            return actionParamInfo.valueFromShell == "1" || actionParamInfo.valueFromShell!!.toLowerCase(
                 Locale.ROOT) == "true"
         } else if (actionParamInfo.value != null) {
-            return actionParamInfo.value == "1" || actionParamInfo.value!!.lowercase(Locale.ROOT) == "true"
+            return actionParamInfo.value == "1" || actionParamInfo.value!!.toLowerCase(Locale.ROOT) == "true"
         }
         return defaultValue
     }
