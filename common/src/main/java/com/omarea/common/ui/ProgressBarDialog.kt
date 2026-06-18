@@ -36,15 +36,16 @@ open class ProgressBarDialog(private var context: Activity, private var uniqueId
     }
 
     @SuppressLint("InflateParams")
-    fun showDialog(text: String = "正在加载，请稍等..."): ProgressBarDialog {
+    fun showDialog(text: String? = null): ProgressBarDialog {
+        val displayText = text ?: context.getString(R.string.execute_wait)
         if (textView != null && alert != null) {
-            textView!!.text = text
+            textView!!.text = displayText
         } else {
             hideDialog()
             val layoutInflater = LayoutInflater.from(context)
             val dialog = layoutInflater.inflate(R.layout.dialog_loading, null)
             textView = (dialog.findViewById(R.id.dialog_text)!!)
-            textView!!.text = text
+            textView!!.text = displayText
             alert = DialogHelper.customDialog(context, dialog, false)
         }
 

@@ -1,38 +1,38 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <page>
-    <group title="脚本执行器">
-    <action>
-        <title>脚本执行器</title>
-        <summary>自定义命令</summary>
-        <set>$TO</set>
-        <param name="TO" placeholder="自定义命令" value="" requiret="true" />
-    </action>
-     </group>
-     
-     <group>
-     <action>
-        <title>刷入镜像文件</title>
-        <set>script/tool.sh flash_img</set>
-        <param name="CQ" label="刷入成功自动重启系统" type="checkbox" />
-        <param name="CQ1" label="刷入成功自动重启至Recovery（恢复模式）" type="checkbox" />
-        <param name="IMG" title="注：要刷入的镜像大小不能大于显示的大小，否则会刷入不了" options-sh="script/tool.sh parts" required="true"/>
-        <param name="Brush_in" type="file" suffix="img" editable="true" required="true" title="可输入img文件绝对路径，也可以使用文件选择器选择文件" desc="路径最好不要带空格"/>
-    </action>
-    <action>
-        <title>提取镜像文件</title>
-        <set>script/tool.sh extract_part</set>
-        <param name="IMG" title="请选择分区支持多选：" multiple="true" options-sh="script/tool.sh parts" required="true"/>
-    </action>
-     </group>
-     
-       <group> 
+    <group title="@string/script_group_script_executor">
+        <action>
+            <title>@string/script_group_script_executor</title>
+            <summary>@string/script_summary_custom_command</summary>
+            <set>$TO</set>
+            <param name="TO" placeholder="@string/script_placeholder_custom_command" value="" required="true" />
+        </action>
+    </group>
+
+    <group>
+        <action>
+            <title>@string/script_action_flash_image</title>
+            <set>script/tool.sh flash_img</set>
+            <param name="CQ" label="@string/script_label_reboot_after_flash" type="checkbox" />
+            <param name="CQ1" label="@string/script_label_reboot_recovery_after_flash" type="checkbox" />
+            <param name="IMG" title="@string/script_title_flash_image_size_warning" options-sh="script/tool.sh parts" required="true"/>
+            <param name="Brush_in" type="file" suffix="img" editable="true" required="true" title="@string/script_title_input_img_path" desc="@string/script_desc_path_no_spaces"/>
+        </action>
+        <action>
+            <title>@string/script_action_extract_image_file</title>
+            <set>script/tool.sh extract_part</set>
+            <param name="IMG" title="@string/script_title_select_partition_multi" multiple="true" options-sh="script/tool.sh parts" required="true"/>
+        </action>
+    </group>
+
+    <group>
         <text>
-        <slices>
- <slice size="17" align="center" color="black">声明</slice>
- <slice break="true"/>
- <slice color="red" align="center" size="14">本工具所造成的一切风险需自行承担</slice><slice/>
- <slice color="red" align="center" size="14">如您在使用中发现BUG请及时向我们反馈</slice><slice break="true"/>
-        </slices>
+            <slices>
+                <slice size="17" align="center" color="black">@string/script_text_statement_title</slice>
+                <slice break="true"/>
+                <slice color="red" align="center" size="14">@string/script_text_statement_risk</slice><slice/>
+                <slice color="red" align="center" size="14">@string/script_text_statement_bug_feedback</slice><slice break="true"/>
+            </slices>
         </text>
-</group>
+    </group>
 </page>

@@ -1,7 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="execute_success">Executed successfully</string>
+    <string name="execute_fail">Execution failed</string>
+    <string name="execute_wait">Working, please wait...</string>
     <string name="btn_confirm">OK</string>
-    <string name="item_chooser_search_hint">Search for item</string>
+    <string name="app_chooser_search_hint">Search by app name or package name</string>
+    <string name="item_chooser_search_hint">Search selectable items</string>
+    <string name="select_all">Select all</string>
+    <string name="help_title">Help</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_skip">Skip</string>
+    <string name="dialog_title_placeholder">Information</string>
+    <string name="dialog_message_placeholder">Message</string>
+    <string name="btn_got_it">Got it</string>
 </resources>

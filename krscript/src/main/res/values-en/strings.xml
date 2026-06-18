@@ -1,18 +1,56 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="btn_confirm">OK</string>
+    <string name="shell_executor">Script executor</string>
     <string name="btn_cancel">Cancel</string>
     <string name="btn_skip">Skip</string>
+    <string name="btn_exit">Exit</string>
+    <string name="btn_hide">Hide</string>
+    <string name="btn_execute">Execute</string>
     <string name="onloading">Loading...</string>
     <string name="kr_shell_completed">Script execution completed</string>
-    <string name="btn_copy_output">Copy</string>
-    <string name="do_not_empty">" an value is required for this field"</string>
-    <string name="kr_param_options_load">"Loading list items of "</string>
-    <string name="kr_please_choose_file">Choose a file</string>
+    <string name="kr_shell_finish_error">Execution finished with errors</string>
+    <string name="script_losted">Script resource is missing\n</string>
+    <string name="btn_copy_output">Copy output</string>
+    <string name="copy_success">Output log copied to clipboard</string>
+    <string name="copy_fail">Copy failed</string>
+    <string name="do_not_empty">This field is required</string>
+    <string name="kr_param_load">Getting state</string>
+    <string name="kr_param_options_load">Loading options </string>
+    <string name="kr_params_render">Rendering UI...</string>
+    <string name="kr_params_required_message">Enter the following parameters to continue</string>
+    <string name="kr_please_choose_folder">Select a folder</string>
+    <string name="kr_please_choose_file">Select a file</string>
+    <string name="kr_please_choose_app">Select an app</string>
+    <string name="kr_please_input_color">Enter a color</string>
     <string name="kr_please_select">Select</string>
-    <string name="kr_page_load_fail">Unable to load the page</string>
+    <string name="kr_write_external_storage">Read/write external storage permission is required.</string>
+    <string name="kr_download_create_fail">Failed to create download task</string>
+    <string name="kr_download_create_success">Started downloading file</string>
+    <string name="kr_download_confirm">Download this file?</string>
+    <string name="kr_download_completed">File downloaded successfully</string>
+    <string name="kr_download_downloading">Downloading file</string>
+    <string name="kr_color_picker">Select a color</string>
+    <string name="kr_invalid_color">Invalid color value. Only formats like #ff88aa00 are supported.</string>
+    <string name="kr_slice_script_result">Script output</string>
+    <string name="kr_slice_activity_fail">Unable to open activity.</string>
+    <string name="kr_page_before_load">Preparing to parse config</string>
+    <string name="kr_page_loading">Parsing config</string>
+    <string name="kr_page_after_load">Config parsing completed</string>
+    <string name="kr_page_sh_invalid">Invalid page config output</string>
+    <string name="kr_page_sh_file_permission">The specified config file does not exist or cannot be read</string>
+    <string name="kr_page_load_fail">Page load failed</string>
+    <string name="kr_page_load_success">Page loaded successfully</string>
+    <string name="kr_auto_run_item_losted">The specified item is missing</string>
+    <string name="kr_hidden_task_running">The previous operation is still running.</string>
+    <string name="kr_lock_message">This feature is locked</string>
+    <string name="kr_sdk_too_low">System version is too low</string>
+    <string name="kr_sdk_overtop">System version is too high</string>
+    <string formatted="false" name="kr_sdk_message">This feature only runs on SDK %d - %d</string>
+    <string name="kr_sdk_discrepancy">System version mismatch</string>
+    <string formatted="false" name="kr_sdk_discrepancy_message">This feature only runs on SDK %d</string>
+    <string name="picker_not_item">No available options.</string>
+    <string name="picker_select_none">No item selected.</string>
     <string name="xml_config_parse_failed">Failed to parse config XML</string>
-    <string name="kr_please_choose_folder">Please select a directory</string>
-    <string name="kr_page_loading">Parsing config XML</string>
-    <string name="kr_lock_message">A mutex is accquired for this feature</string>
+    <string name="shell_process_start_failed">Failed to start command-line process.</string>
+    <string name="kr_page_render_error">%1$s UI render error: %2$s</string>
 </resources>

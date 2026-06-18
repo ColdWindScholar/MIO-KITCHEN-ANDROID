@@ -37,5 +37,5 @@ if [[ -f $script_path ]]; then
     chmod 777 $script_path
     source $script_path
 else
-    echo "${script_path} 已丢失" 1>&2
+    echo "@string/shell_script_lost|${script_path}" 1>&2
 fi

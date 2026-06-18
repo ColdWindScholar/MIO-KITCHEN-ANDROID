@@ -21,11 +21,11 @@
             <TextView
                 android:id="@+id/confirm_title"
                 style="@style/dialogTitle"
-                android:text="提示信息" />
+                android:text="@string/dialog_title_placeholder" />
             <TextView
                 android:id="@+id/confirm_message"
                 style="@style/dialogDesc"
-                android:text="提示内容" />
+                android:text="@string/dialog_message_placeholder" />
 
             <FrameLayout
                 android:id="@+id/confirm_custom_view"
@@ -44,13 +44,13 @@
                 android:id="@+id/btn_cancel"
                 style="@style/dialogCancelBtn"
                 android:layout_marginEnd="8dp"
-                android:text="取消">
+                android:text="@string/btn_cancel">
             </Button>
             <Button
                 android:id="@+id/btn_confirm"
                 style="@style/dialogConfirmBtn"
                 android:background="@drawable/btn_bg_large_warning"
-                android:text="确定">
+                android:text="@string/btn_confirm">
             </Button>
         </LinearLayout>
 

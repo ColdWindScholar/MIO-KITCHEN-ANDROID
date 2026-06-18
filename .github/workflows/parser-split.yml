@@ -1,0 +1,36 @@
+name: KrScript Parser Split
+
+on:
+  push:
+    paths:
+      - 'krscript/src/main/java/com/omarea/krscript/parser/**'
+      - 'krscript/src/main/java/com/omarea/krscript/validator/**'
+      - 'krscript/src/main/java/com/omarea/krscript/runtime/**'
+      - 'krscript/src/main/java/com/omarea/krscript/config/AndroidPageConfigSource.kt'
+      - 'krscript/src/test/java/com/omarea/krscript/parser/**'
+      - 'krscript/build.gradle'
+      - 'tools/check-parser-split.py'
+      - 'docs/**'
+      - '.github/workflows/parser-split.yml'
+  pull_request:
+    paths:
+      - 'krscript/src/main/java/com/omarea/krscript/parser/**'
+      - 'krscript/src/main/java/com/omarea/krscript/validator/**'
+      - 'krscript/src/main/java/com/omarea/krscript/runtime/**'
+      - 'krscript/src/main/java/com/omarea/krscript/config/AndroidPageConfigSource.kt'
+      - 'krscript/src/test/java/com/omarea/krscript/parser/**'
+      - 'krscript/build.gradle'
+      - 'tools/check-parser-split.py'
+      - 'docs/**'
+      - '.github/workflows/parser-split.yml'
+
+jobs:
+  validate-parser-split:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Validate KrScript parser/runtime split
+        run: python3 tools/check-parser-split.py

@@ -2,6 +2,7 @@ package com.mio.kitchen
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -13,23 +14,30 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.PermissionChecker
+import com.mio.kitchen.databinding.ActivityFileSelectorBinding
 import com.mio.kitchen.ui.AdapterFileSelector
+import com.mio.kitchen.ui.modern.RuntimePermissionHelper
 import com.omarea.common.ui.ProgressBarDialog
-import kotlinx.android.synthetic.main.activity_file_selector.file_selector_list
 import java.io.File
 
 // FILE_MODE = 0 FOLDER_MODE=1
 class ActivityFileSelector : AppCompatActivity() {
 
+    private lateinit var binding: ActivityFileSelectorBinding
     private var adapterFileSelector: AdapterFileSelector? = null
     private var extension = ""
     private var mode = 0
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LanguageConfig.wrap(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // TODO:ThemeSwitch.switchTheme(this)
 
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_file_selector)
+        binding = ActivityFileSelectorBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
@@ -73,25 +81,37 @@ class ActivityFileSelector : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        var grant = true
-        for (result in grantResults) {
-            if (result == PackageManager.PERMISSION_DENIED) {
-                grant = false
-            }
-        }
-
+        // RU: Stage 20 — делегируем проверку результата в RuntimePermissionHelper,
+        //     который учитывает targetSdk 35 (POST_NOTIFICATIONS, capped
+        //     READ_EXTERNAL_STORAGE).
+        // EN: Stage 20 — delegate result verification to RuntimePermissionHelper,
+        //     which respects targetSdk 35 (POST_NOTIFICATIONS, capped
+        //     READ_EXTERNAL_STORAGE).
         if (requestCode == 111) {
-            if (!grant) {
-                Toast.makeText(applicationContext, "没有读取文件的权限！", Toast.LENGTH_LONG).show()
-            } else {
+            if (RuntimePermissionHelper.areAllGranted(grantResults)) {
                 loadData()
+            } else {
+                Toast.makeText(this@ActivityFileSelector, R.string.file_read_permission_denied, Toast.LENGTH_LONG).show()
             }
         }
     }
 
     private fun checkPermission(permission: String): Boolean = PermissionChecker.checkSelfPermission(this, permission) == PermissionChecker.PERMISSION_GRANTED
+
+    /**
+     * RU: Stage 20 — заменяем устаревший запрос `READ_EXTERNAL_STORAGE` +
+     *     `WRITE_EXTERNAL_STORAGE` на RuntimePermissionHelper. На Android 13+
+     *     эти разрешения больше не выдаются системой (capped в манифесте),
+     *     так что старый код постоянно показывал Toast "permission denied".
+     *
+     * EN: Stage 20 — replace the legacy `READ_EXTERNAL_STORAGE` +
+     *     `WRITE_EXTERNAL_STORAGE` request with RuntimePermissionHelper. On
+     *     Android 13+ these permissions are no longer granted by the system
+     *     (capped in the manifest), so the legacy code kept showing the
+     *     "permission denied" Toast.
+     */
     private fun requestPermissions() {
-        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE), 111)
+        RuntimePermissionHelper.requestMissing(this, 111)
     }
 
     override fun onResume() {
@@ -100,12 +120,24 @@ class ActivityFileSelector : AppCompatActivity() {
     }
 
     private fun loadData() {
-        if (checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE) && checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+        // RU: Stage 20 — на Android 13+ READ_EXTERNAL_STORAGE не выдаётся,
+        //     но legacy file-selector всё ещё хочет обычный file-path.
+        //     Если разрешение не выдано — показываем Toast и предлагаем
+        //     пользователю открыть FirmwareAnalysisActivity, где используется
+        //     SAF (StorageGateway + FirmwareWorkspace).
+        // EN: Stage 20 — on Android 13+ READ_EXTERNAL_STORAGE is not granted,
+        //     but the legacy file selector still expects a regular file path.
+        //     If the permission is not granted, show a Toast and direct the
+        //     user to FirmwareAnalysisActivity where SAF (StorageGateway +
+        //     FirmwareWorkspace) is used.
+        val canReadLegacy = checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE) &&
+            checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        if (canReadLegacy) {
             val sdcard = File(Environment.getExternalStorageDirectory().absolutePath)
             if (sdcard.exists() && sdcard.isDirectory) {
                 val list = sdcard.listFiles()
                 if (list == null) {
-                    Toast.makeText(applicationContext, "获取文件列表失败！", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ActivityFileSelector, R.string.file_list_load_failed, Toast.LENGTH_LONG).show()
                     return
                 }
                 val onSelected =  Runnable {
@@ -116,13 +148,25 @@ class ActivityFileSelector : AppCompatActivity() {
                     }
                 }
                 adapterFileSelector = if (mode == 1) {
-                    AdapterFileSelector.FolderChooser(applicationContext, sdcard, onSelected, ProgressBarDialog(this))
+                    AdapterFileSelector.FolderChooser(this@ActivityFileSelector, sdcard, onSelected, ProgressBarDialog(this))
                 } else {
-                    AdapterFileSelector.FileChooser(applicationContext, sdcard, onSelected, ProgressBarDialog(this), extension)
+                    AdapterFileSelector.FileChooser(this@ActivityFileSelector, sdcard, onSelected, ProgressBarDialog(this), extension)
                 }
 
-                file_selector_list.adapter = adapterFileSelector
+                binding.fileSelectorList.adapter = adapterFileSelector
             }
+        } else if (RuntimePermissionHelper.areAllGranted(this)) {
+            // RU: Все runtime-разрешения выданы, но legacy READ/WRITE_EXTERNAL_STORAGE
+            //     не доступны на Android 13+. В этом случае предлагаем пользователю
+            //     использовать новый SAF-based flow.
+            // EN: All runtime permissions are granted, but legacy
+            //     READ/WRITE_EXTERNAL_STORAGE is not available on Android 13+.
+            //     In that case, direct the user to the new SAF-based flow.
+            Toast.makeText(
+                this@ActivityFileSelector,
+                "On Android 13+, please use the new file picker (FirmwareAnalysisActivity)",
+                Toast.LENGTH_LONG
+            ).show()
         } else {
             requestPermissions()
         }

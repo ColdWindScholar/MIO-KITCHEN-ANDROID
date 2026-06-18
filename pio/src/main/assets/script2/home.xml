@@ -1,46 +1,46 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<resource dir="file:///android_asset/script" /> 
+<resource dir="file:///android_asset/script" />
 <items>
-    <group title="概览">
-     <action reload="true" auto-off="true"> 
-     <title>项目列表</title>
-     <param name="xm" options-sh="script/tool.sh check"/>
-     <set>echo "$xm" > ${XBJ}</set>
-     <summary sh="script/tool.sh zy" />
-     </action>
+    <group title="@string/script_group_overview">
+        <action reload="true" auto-off="true">
+            <title>@string/script_action_project_list</title>
+            <param name="xm" options-sh="script/tool.sh check"/>
+            <set>echo "$xm" &gt; ${XBJ}</set>
+            <summary sh="script/tool.sh zy" />
+        </action>
     </group>
 
-    <group title="工具菜单">
+    <group title="@string/script_group_tools">
         <action reload="true" auto-off="true">
-            <title>下载ROM</title>
-            <param name="jb" label="下载完成后解包" type="switch" />
-            <param name="del" label="解包完成后删除源文件" type="switch" />
-            <param name="romdz" label="输入链接" title="输入链接" placeholder="请输入...." type="text" />
+            <title>@string/script_action_download_rom</title>
+            <param name="jb" label="@string/script_label_unpack_after_download" type="switch" />
+            <param name="del" label="@string/script_label_delete_source_after_unpack" type="switch" />
+            <param name="romdz" label="@string/script_label_input_link" title="@string/script_title_input_link" placeholder="@string/script_placeholder_input" type="text" />
             <script>script/tool.sh download</script>
         </action>
-        
-         <action reload="true" auto-off="true"> 
-     <title>选择ROM</title>
- <set>script/tool.sh UZ</set>
- <param name="del" label="删除源文件" type="switch" />
-<param name="xzrom" label="文件选择" type="file" suffix="zip" />
-     </action>
-     
-     <action reload="true" auto-off="true"> 
-     <title>删除项目</title>
-     <param multiple="true" name="xms" options-sh="script/tool.sh check"/>
-     <set>script/tool.sh del</set>
-     </action>
-     
-     <action reload="true" auto-off="true"> 
-     <title>新建项目</title>
-     <param name="xmmc" label="项目名称" title="输入项目名称" placeholder="请输入项目名称(不要带中文)" type="text" />
-     <set>script/tool.sh mn</set>
-     </action>  
-          
-    <page title="工程菜单" config="file:///android_asset/script2/mio.xml">
-    <set>cd $SH_DIR</set>
-    <lock>script/tool.sh unlock</lock>
-    </page>
+
+        <action reload="true" auto-off="true">
+            <title>@string/script_action_select_rom</title>
+            <set>script/tool.sh UZ</set>
+            <param name="del" label="@string/script_label_delete_source" type="switch" />
+            <param name="xzrom" label="@string/script_label_file_select" type="file" suffix="zip" />
+        </action>
+
+        <action reload="true" auto-off="true">
+            <title>@string/script_action_delete_project</title>
+            <param multiple="true" name="xms" options-sh="script/tool.sh check"/>
+            <set>script/tool.sh del</set>
+        </action>
+
+        <action reload="true" auto-off="true">
+            <title>@string/script_action_new_project</title>
+            <param name="xmmc" label="@string/script_label_project_name" title="@string/script_title_input_project_name" placeholder="@string/script_placeholder_project_name" type="text" />
+            <set>script/tool.sh mn</set>
+        </action>
+
+        <page title="@string/script_page_project_menu" config="file:///android_asset/script2/mio.xml">
+            <set>cd $SH_DIR</set>
+            <lock>script/tool.sh unlock</lock>
+        </page>
     </group>
 </items>

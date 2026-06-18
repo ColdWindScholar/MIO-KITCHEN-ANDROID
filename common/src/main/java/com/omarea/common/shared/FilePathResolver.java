@@ -184,13 +184,20 @@ public class FilePathResolver {
                 filename = file.getName();
             }
         } else {
-            Cursor returnCursor = context.getContentResolver().query(uri, null,
-                    null, null, null);
-            if (returnCursor != null) {
-                int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                returnCursor.moveToFirst();
-                filename = returnCursor.getString(nameIndex);
-                returnCursor.close();
+            Cursor returnCursor = null;
+            try {
+                returnCursor = context.getContentResolver().query(uri, null,
+                        null, null, null);
+                if (returnCursor != null && returnCursor.moveToFirst()) {
+                    int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if (nameIndex >= 0) {
+                        filename = returnCursor.getString(nameIndex);
+                    }
+                }
+            } finally {
+                if (returnCursor != null) {
+                    returnCursor.close();
+                }
             }
         }
 
@@ -257,12 +264,17 @@ public class FilePathResolver {
         BufferedOutputStream bos = null;
         try {
             is = context.getContentResolver().openInputStream(uri);
+            if (is == null) {
+                return;
+            }
+
             bos = new BufferedOutputStream(new FileOutputStream(destinationPath, false));
-            byte[] buf = new byte[1024];
-            is.read(buf);
-            do {
-                bos.write(buf);
-            } while (is.read(buf) != -1);
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) != -1) {
+                bos.write(buffer, 0, bytesRead);
+            }
+            bos.flush();
         } catch (IOException ignored) {
         } finally {
             try {
