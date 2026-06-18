@@ -30,22 +30,31 @@ class SplashActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // RU: Stage 20 — инициализируем AppRuntimeStore как можно раньше,
-        //     чтобы новые активности (FirmwareAnalysisActivity и др.) могли
-        //     читать DeviceProfile сразу.
-        // EN: Stage 20 — initialise AppRuntimeStore as early as possible so
-        //     that new activities (FirmwareAnalysisActivity and friends) can
-        //     read DeviceProfile immediately.
-        AppRuntimeStore.init(rootAvailable = null)
-        // RU: Stage 22 — инициализируем LegacyShellBridge. Ранее это делал
-        //     KrScriptConfig.init -> ScriptEnvironmen.init. Теперь
-        //     KrScriptConfig только хранит конфигурацию, а bridge
-        //     инициализируется явно.
-        // EN: Stage 22 — initialise LegacyShellBridge. Previously this was
-        //     done by KrScriptConfig.init -> ScriptEnvironmen.init. Now
-        //     KrScriptConfig only stores configuration, and the bridge is
-        //     initialised explicitly.
-        LegacyShellBridge.init(this)
+        try {
+            // RU: Stage 20 — инициализируем AppRuntimeStore как можно раньше,
+            //     чтобы новые активности (FirmwareAnalysisActivity и др.) могли
+            //     читать DeviceProfile сразу.
+            // EN: Stage 20 — initialise AppRuntimeStore as early as possible so
+            //     that new activities (FirmwareAnalysisActivity and friends) can
+            //     read DeviceProfile immediately.
+            AppRuntimeStore.init(rootAvailable = null)
+        } catch (e: Throwable) {
+            android.util.Log.e("SplashActivity", "AppRuntimeStore.init failed", e)
+        }
+
+        try {
+            // RU: Stage 22 — инициализируем LegacyShellBridge. Ранее это делал
+            //     KrScriptConfig.init -> ScriptEnvironmen.init. Теперь
+            //     KrScriptConfig только хранит конфигурацию, а bridge
+            //     инициализируется явно.
+            // EN: Stage 22 — initialise LegacyShellBridge. Previously this was
+            //     done by KrScriptConfig.init -> ScriptEnvironmen.init. Now
+            //     KrScriptConfig only stores configuration, and the bridge is
+            //     initialised explicitly.
+            LegacyShellBridge.init(this)
+        } catch (e: Throwable) {
+            android.util.Log.e("SplashActivity", "LegacyShellBridge.init failed", e)
+        }
 
         if (ScriptEnvironmen.isInited()) {
             if (isTaskRoot) {
@@ -54,9 +63,19 @@ class SplashActivity : Activity() {
             return
         }
 
-        binding = ActivitySplashBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        updateThemeStyle()
+        try {
+            binding = ActivitySplashBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+            updateThemeStyle()
+        } catch (e: Throwable) {
+            android.util.Log.e("SplashActivity", "Layout inflation failed", e)
+            // RU: Если layout не inflated, пропускаем splash и идём прямо
+            //     в MainActivity, чтобы пользователь хотя бы увидел UI.
+            // EN: If layout inflation fails, skip splash and go straight
+            //     to MainActivity so the user sees something.
+            gotoHome()
+            return
+        }
 
         checkPermissions()
     }

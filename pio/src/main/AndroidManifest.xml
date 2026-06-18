@@ -113,14 +113,9 @@
             android:exported="false" />
         <provider
             android:name="com.mio.kitchen.MTDataFilesProvider"
-            android:permission="android.permission.MANAGE_DOCUMENTS"
-            android:exported="true"
+            android:exported="false"
             android:authorities="com.mio.kitchen.MTDataFilesProvider"
             android:grantUriPermissions="true">
-            <intent-filter>
-                <action
-                    android:name="android.content.action.DOCUMENTS_PROVIDER" />
-            </intent-filter>
         </provider>
 
         <!--
