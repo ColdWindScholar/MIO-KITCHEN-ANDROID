@@ -244,17 +244,17 @@ class PageConfigParser(
                         "title" -> local.title = resolveText(attrValue)
                         "desc" -> local.desc = resolveText(attrValue)
                         "value" -> local.value = resolveText(attrValue)
-                        "type" -> local.type = attrValue.toLowerCase(Locale.ROOT).trim { it <= ' ' }
+                        "type" -> local.type = attrValue.lowercase(Locale.ROOT).trim { it <= ' ' }
                         "suffix" -> {
-                            val suffix = attrValue.toLowerCase(Locale.ROOT).trim { it <= ' ' }
+                            val suffix = attrValue.lowercase(Locale.ROOT).trim { it <= ' ' }
                             if (local.mime.isEmpty()) {
                                 local.mime = Suffix2Mime().toMime(suffix)
                             }
                             local.suffix = suffix
                         }
-                        "mime" -> local.mime = attrValue.toLowerCase(Locale.ROOT)
+                        "mime" -> local.mime = attrValue.lowercase(Locale.ROOT)
                         "readonly" -> {
-                            val v = attrValue.toLowerCase(Locale.ROOT).trim { it <= ' ' }
+                            val v = attrValue.lowercase(Locale.ROOT).trim { it <= ' ' }
                             local.readonly = (v == "readonly" || v == "true" || v == "1")
                         }
                         "maxlength" -> local.maxLength = Integer.parseInt(attrValue)
@@ -335,13 +335,13 @@ class PageConfigParser(
                             "type" -> option.type = parser.getAttributeValue(i)
                             "style" -> option.isFab = parser.getAttributeValue(i) == "fab"
                             "suffix" -> {
-                                val suffix = parser.getAttributeValue(i).toLowerCase(Locale.ROOT).trim { it <= ' ' }
+                                val suffix = parser.getAttributeValue(i).lowercase(Locale.ROOT).trim { it <= ' ' }
                                 if (option.mime.isEmpty()) {
                                     option.mime = Suffix2Mime().toMime(suffix)
                                 }
                                 option.suffix = suffix
                             }
-                            "mime" -> option.mime = parser.getAttributeValue(i).toLowerCase(Locale.ROOT)
+                            "mime" -> option.mime = parser.getAttributeValue(i).lowercase(Locale.ROOT)
                         }
                     }
                     option.title = resolveText(parser.nextText())
@@ -548,7 +548,7 @@ class PageConfigParser(
         if (switchNode != null) {
             val shellResult = executeShell(switchNode.getState ?: "")
             switchNode.checked = shellResult != "error" &&
-                (shellResult == "1" || shellResult.toLowerCase(Locale.ROOT) == "true")
+                (shellResult == "1" || shellResult.lowercase(Locale.ROOT) == "true")
             if (switchNode.setState == null) switchNode.setState = ""
         }
     }
@@ -566,7 +566,7 @@ class PageConfigParser(
     private fun rowNode(textNode: TextNode, parser: XmlPullParser) {
         val textRow = TextNode.TextRow()
         for (i in 0 until parser.attributeCount) {
-            val attrName = parser.getAttributeName(i).toLowerCase(Locale.ROOT)
+            val attrName = parser.getAttributeName(i).lowercase(Locale.ROOT)
             val attrValue = parser.getAttributeValue(i)
             try {
                 when (attrName) {
@@ -587,8 +587,8 @@ class PageConfigParser(
                     "sh" -> textRow.dynamicTextSh = attrValue
                     "align" -> {
                         when (attrValue) {
-                            "left" -> textRow.align = Layout.Alignment.ALIGN_LEFT
-                            "right" -> textRow.align = Layout.Alignment.ALIGN_RIGHT
+                            "left" -> textRow.align = Layout.Alignment.ALIGN_NORMAL
+                            "right" -> textRow.align = Layout.Alignment.ALIGN_OPPOSITE
                             "center" -> textRow.align = Layout.Alignment.ALIGN_CENTER
                             "normal" -> textRow.align = Layout.Alignment.ALIGN_NORMAL
                         }

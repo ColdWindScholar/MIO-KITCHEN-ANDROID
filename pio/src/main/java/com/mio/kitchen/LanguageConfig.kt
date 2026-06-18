@@ -9,14 +9,14 @@ import java.util.Locale
 /**
  * RU: Android/UI-слой локализации приложения.
  *
- * Переводы остаются в отдельных Android resource-файлах `values*/strings.xml`.
+ * Переводы остаются в отдельных Android resource-файлах (`values-xx/strings.xml`).
  * Этот объект хранит только список языков, показанных пользователю, связывает
  * код языка с [Locale] и создаёт локализованный [Context]. Низкоуровневые ключи
  * SharedPreferences и shell-переменные находятся в [AppLanguage].
  *
  * EN: Android/UI localization layer.
  *
- * Translations stay in separate Android `values*/strings.xml` resource files.
+ * Translations stay in separate Android resource files (`values-xx/strings.xml`).
  * This object only owns the language list shown to the user, maps language codes
  * to [Locale], and creates a localized [Context]. Low-level SharedPreferences
  * keys and shell environment variables are owned by [AppLanguage].
@@ -39,7 +39,7 @@ object LanguageConfig {
         val normalized = code
             ?.trim()
             ?.replace('_', '-')
-            ?.toLowerCase(Locale.ROOT)
+            ?.lowercase(Locale.ROOT)
             ?.substringBefore('-')
             ?.takeIf { it.isNotEmpty() }
             ?: AppLanguage.DEFAULT_LANGUAGE

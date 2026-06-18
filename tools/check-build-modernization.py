@@ -56,7 +56,7 @@ require("buildToolsVersion" not in ALL_BUILDS, "manual buildToolsVersion must be
 require("compileSdkVersion 28" not in ALL_BUILDS, "old compileSdkVersion 28 syntax/value must be removed")
 require("targetSdkVersion 28" not in PIO_BUILD, "old targetSdkVersion DSL must be replaced by targetSdk")
 require("lintOptions" not in ALL_BUILDS, "legacy lintOptions block must be replaced with lint {}")
-require("signingConfigs.debug" not in ALL_BUILDS.replace("signingConfig signingConfigs.debug", "__KEEP_DEBUG__"), "release builds must not reference signingConfigs.debug")
+require("signingConfigs.debug" not in ALL_BUILDS, "release builds must not reference signingConfigs.debug")
 require("distributionUrl=https\\://services.gradle.org/distributions/gradle-8.13-bin.zip" in WRAPPER, "Gradle wrapper must use official Gradle 8.13 distribution")
 require("mirrors.cloud.tencent.com" not in WRAPPER, "Gradle wrapper must not use a regional mirror")
 require("org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8" in GRADLE_PROPERTIES, "gradle.properties must set deterministic JVM args")

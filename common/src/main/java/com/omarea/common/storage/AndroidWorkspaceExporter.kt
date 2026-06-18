@@ -79,10 +79,9 @@ class AndroidWorkspaceExporter(
             return ExportResult.Failed("Source file does not exist: ${sourceFile.absolutePath}")
         }
         return try {
-            val (copied, sha) = copyWithOptionalHash(sourceFile) { output ->
-                context.contentResolver.openOutputStream(targetUri, "w")?.use { out ->
-                    copyStream(sourceFile.inputStream(), out)
-                } ?: throw java.io.IOException("Cannot open output stream for $targetUri")
+            val (copied, sha) = copyWithOptionalHash(sourceFile) {
+                context.contentResolver.openOutputStream(targetUri, "w")
+                    ?: throw java.io.IOException("Cannot open output stream for $targetUri")
             }
             ExportResult.Success(
                 targetUri = targetUri,
@@ -141,10 +140,8 @@ class AndroidWorkspaceExporter(
         if (!targetDir.exists()) targetDir.mkdirs()
         val targetFile = File(targetDir, sourceFile.name)
         return try {
-            val (copied, sha) = copyWithOptionalHash(sourceFile) { output ->
-                targetFile.outputStream().use { out ->
-                    copyStream(sourceFile.inputStream(), out)
-                }
+            val (copied, sha) = copyWithOptionalHash(sourceFile) {
+                targetFile.outputStream()
             }
             ExportResult.Success(
                 targetUri = Uri.fromFile(targetFile),
@@ -161,17 +158,17 @@ class AndroidWorkspaceExporter(
 
     private fun copyWithOptionalHash(
         source: File,
-        writer: ((OutputStream) -> Unit)
+        outputProvider: () -> OutputStream
     ): Pair<Long, String?> {
         val digest = if (computeSha256Enabled) MessageDigest.getInstance("SHA-256") else null
         var bytesCopied = 0L
-        source.inputStream().use { input ->
-            val tempDigest = digest
-            val counter = longArrayOf(0L)
-            writer { out ->
-                copyStream(input, out, tempDigest, counter)
+        source.inputStream().use { input: java.io.InputStream ->
+            val out: OutputStream = outputProvider()
+            out.use { output: OutputStream ->
+                val counter = longArrayOf(0L)
+                copyStream(input, output, digest, counter)
+                bytesCopied = counter[0]
             }
-            bytesCopied = counter[0]
         }
         val sha = digest?.digest()?.joinToString("") { "%02x".format(it) }
         return bytesCopied to sha

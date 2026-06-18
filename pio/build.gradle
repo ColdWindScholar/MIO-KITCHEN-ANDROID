@@ -57,14 +57,6 @@ android {
             minifyEnabled false
             if ((project.findProperty('MIO_RELEASE_STORE_FILE') ?: System.getenv('MIO_RELEASE_STORE_FILE'))) {
                 signingConfig signingConfigs.release
-            } else {
-                // RU: если release-секреты не заданы, используем debug-подпись.
-                //     Это позволяет собирать APK для тестирования без keystore.
-                //     Для Play Store нужно задать MIO_RELEASE_* секреты.
-                // EN: when release secrets are not set, use debug signing.
-                //     This allows building APKs for testing without a keystore.
-                //     For Play Store, set the MIO_RELEASE_* secrets.
-                signingConfig signingConfigs.debug
             }
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -74,8 +66,6 @@ android {
             minifyEnabled true
             if ((project.findProperty('MIO_RELEASE_STORE_FILE') ?: System.getenv('MIO_RELEASE_STORE_FILE'))) {
                 signingConfig signingConfigs.release
-            } else {
-                signingConfig signingConfigs.debug
             }
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }

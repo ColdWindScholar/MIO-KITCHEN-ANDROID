@@ -100,7 +100,6 @@ class PageConfigValidator {
                 }
             }
             is PageNode -> {
-                validateRunnable(node, issues)
                 if (node.pageConfigPath.isNullOrEmpty() &&
                     node.onlineHtmlPage.isNullOrEmpty() &&
                     node.activity.isNullOrEmpty() &&
