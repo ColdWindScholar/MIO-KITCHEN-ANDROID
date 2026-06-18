@@ -170,10 +170,10 @@ jobs:
           -PMIO_RELEASE_KEY_PASSWORD="$MIO_RELEASE_KEY_PASSWORD" \
           --no-daemon
 
-    - name: Build release APK (debug-signed)
+    - name: Build debug APK (debug-signed)
       if: steps.signing.outputs.signing_available == 'false'
       run: |
-        ./gradlew clean :pio:assembleRelease \
+        ./gradlew clean :pio:assembleDebug \
           -PapkReleaseDate=${{ steps.version.outputs.release_date }} \
           --no-daemon
 
@@ -182,12 +182,15 @@ jobs:
       run: |
         set -euo pipefail
         mkdir -p release-apk
-        # When signed: APK is in release/ and named like app-release.apk
-        # When debug-signed: same location, but may also be found there
-        APK_FILE=$(find pio/build/outputs/apk/release -type f -name '*.apk' ! -name '*unsigned*' -print -quit 2>/dev/null || true)
-        # Fallback: search in debug output (should not happen with assembleRelease, but just in case)
+        if [ "${{ steps.signing.outputs.signing_available }}" = "true" ]; then
+          SEARCH_DIR="pio/build/outputs/apk/release"
+        else
+          SEARCH_DIR="pio/build/outputs/apk/debug"
+        fi
+        APK_FILE=$(find "$SEARCH_DIR" -type f -name '*.apk' ! -name '*unsigned*' -print -quit 2>/dev/null || true)
+        # Fallback: search all apk outputs
         if [ -z "$APK_FILE" ]; then
-          APK_FILE=$(find pio/build/outputs/apk -type f -name '*.apk' -print -quit 2>/dev/null || true)
+          APK_FILE=$(find pio/build/outputs/apk -type f -name '*.apk' ! -name '*unsigned*' -print -quit 2>/dev/null || true)
         fi
         if [ -z "$APK_FILE" ]; then
           echo "ERROR: No APK found in build outputs!" >&2
@@ -213,7 +216,7 @@ jobs:
         if [ "${{ steps.signing.outputs.signing_available }}" = "true" ]; then
           SIGNING_NOTE="Signed with release key."
         else
-          SIGNING_NOTE="Signed with debug key (not Play Store ready)."
+          SIGNING_NOTE="Debug build signed with debug key (not Play Store ready)."
         fi
         gh release create "${{ steps.version.outputs.release_tag }}" release-apk/*.apk \
           --target "$GITHUB_SHA" \
