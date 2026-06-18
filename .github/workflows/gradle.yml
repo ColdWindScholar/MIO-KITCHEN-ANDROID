@@ -126,38 +126,28 @@ jobs:
         python3 tools/check-storage-workspace.py
         bash -n pio/src/main/assets/script/tool.sh
 
-    - name: Check release signing secrets
-      id: secrets
+    - name: Check signing secrets availability
+      id: signing
       env:
         MIO_RELEASE_STORE_BASE64: ${{ secrets.MIO_RELEASE_STORE_BASE64 }}
         MIO_RELEASE_STORE_PASSWORD: ${{ secrets.MIO_RELEASE_STORE_PASSWORD }}
         MIO_RELEASE_KEY_ALIAS: ${{ secrets.MIO_RELEASE_KEY_ALIAS }}
         MIO_RELEASE_KEY_PASSWORD: ${{ secrets.MIO_RELEASE_KEY_PASSWORD }}
       run: |
-        if [ -n "${MIO_RELEASE_STORE_BASE64}" ] && [ -n "${MIO_RELEASE_STORE_PASSWORD}" ] && [ -n "${MIO_RELEASE_KEY_ALIAS}" ] && [ -n "${MIO_RELEASE_KEY_PASSWORD}" ]; then
-          echo "has_secrets=true" >> "$GITHUB_OUTPUT"
-          echo "Release signing secrets are present — will build a properly signed release APK."
+        if [ -n "${MIO_RELEASE_STORE_BASE64}" ] && \
+           [ -n "${MIO_RELEASE_STORE_PASSWORD}" ] && \
+           [ -n "${MIO_RELEASE_KEY_ALIAS}" ] && \
+           [ -n "${MIO_RELEASE_KEY_PASSWORD}" ]; then
+          echo "signing_available=true" >> "$GITHUB_OUTPUT"
+          echo "Release signing secrets are present — will build signed APK."
         else
-          echo "has_secrets=false" >> "$GITHUB_OUTPUT"
-          echo "WARNING: Release signing secrets are NOT set."
-          echo "The APK will be signed with the debug key."
-          echo "This is fine for testing but NOT suitable for Play Store or distribution."
-          echo ""
-          echo "To enable release signing, add these GitHub repository secrets:"
-          echo "  MIO_RELEASE_STORE_BASE64    — base64-encoded .jks keystore file"
-          echo "  MIO_RELEASE_STORE_PASSWORD  — keystore password"
-          echo "  MIO_RELEASE_KEY_ALIAS       — key alias (e.g. mio-kitchen)"
-          echo "  MIO_RELEASE_KEY_PASSWORD    — key password"
-          echo ""
-          echo "To create a keystore locally:"
-          echo '  keytool -genkey -v -keystore mio-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias mio-kitchen -storepass <password> -keypass <password> -dname "CN=MIO Kitchen, O=MIO Kitchen, C=US"'
-          echo "  # Then base64-encode it:"
-          echo "  # Linux/macOS:  base64 -w 0 mio-release.jks"
-          echo "  # Windows PS:   [Convert]::ToBase64String([IO.File]::ReadAllBytes('mio-release.jks'))"
+          echo "signing_available=false" >> "$GITHUB_OUTPUT"
+          echo "Release signing secrets are NOT configured — will build APK with debug signing."
+          echo "This APK is fine for personal use but cannot be published to Google Play."
         fi
 
     - name: Decode release keystore
-      if: steps.secrets.outputs.has_secrets == 'true'
+      if: steps.signing.outputs.signing_available == 'true'
       env:
         MIO_RELEASE_STORE_BASE64: ${{ secrets.MIO_RELEASE_STORE_BASE64 }}
       run: |
@@ -165,31 +155,47 @@ jobs:
         echo "${MIO_RELEASE_STORE_BASE64}" | base64 --decode > "$RUNNER_TEMP/mio-release.jks"
         test -s "$RUNNER_TEMP/mio-release.jks"
 
-    - name: Build release APK
+    - name: Build signed release APK
+      if: steps.signing.outputs.signing_available == 'true'
       env:
         MIO_RELEASE_STORE_PASSWORD: ${{ secrets.MIO_RELEASE_STORE_PASSWORD }}
         MIO_RELEASE_KEY_ALIAS: ${{ secrets.MIO_RELEASE_KEY_ALIAS }}
         MIO_RELEASE_KEY_PASSWORD: ${{ secrets.MIO_RELEASE_KEY_PASSWORD }}
       run: |
-        GRADLE_ARGS="clean :pio:assembleRelease -PapkReleaseDate=${{ steps.version.outputs.release_date }}"
+        ./gradlew clean :pio:assembleRelease \
+          -PapkReleaseDate=${{ steps.version.outputs.release_date }} \
+          -PMIO_RELEASE_STORE_FILE="$RUNNER_TEMP/mio-release.jks" \
+          -PMIO_RELEASE_STORE_PASSWORD="$MIO_RELEASE_STORE_PASSWORD" \
+          -PMIO_RELEASE_KEY_ALIAS="$MIO_RELEASE_KEY_ALIAS" \
+          -PMIO_RELEASE_KEY_PASSWORD="$MIO_RELEASE_KEY_PASSWORD" \
+          --no-daemon
 
-        if [ "${{ steps.secrets.outputs.has_secrets }}" = "true" ]; then
-          GRADLE_ARGS="$GRADLE_ARGS -PMIO_RELEASE_STORE_FILE=$RUNNER_TEMP/mio-release.jks -PMIO_RELEASE_STORE_PASSWORD=$MIO_RELEASE_STORE_PASSWORD -PMIO_RELEASE_KEY_ALIAS=$MIO_RELEASE_KEY_ALIAS -PMIO_RELEASE_KEY_PASSWORD=$MIO_RELEASE_KEY_PASSWORD"
-          echo "Building SIGNED release APK..."
-        else
-          echo "Building DEBUG-SIGNED release APK (no signing secrets)..."
-        fi
-
-        ./gradlew $GRADLE_ARGS --no-daemon
+    - name: Build release APK (debug-signed)
+      if: steps.signing.outputs.signing_available == 'false'
+      run: |
+        ./gradlew clean :pio:assembleRelease \
+          -PapkReleaseDate=${{ steps.version.outputs.release_date }} \
+          --no-daemon
 
     - name: Prepare release APK
       shell: bash
       run: |
         set -euo pipefail
         mkdir -p release-apk
-        APK_FILE=$(find pio/build/outputs/apk/release -type f -name '*.apk' ! -name '*unsigned*' -print -quit)
-        test -n "$APK_FILE"
+        # When signed: APK is in release/ and named like app-release.apk
+        # When debug-signed: same location, but may also be found there
+        APK_FILE=$(find pio/build/outputs/apk/release -type f -name '*.apk' ! -name '*unsigned*' -print -quit 2>/dev/null || true)
+        # Fallback: search in debug output (should not happen with assembleRelease, but just in case)
+        if [ -z "$APK_FILE" ]; then
+          APK_FILE=$(find pio/build/outputs/apk -type f -name '*.apk' -print -quit 2>/dev/null || true)
+        fi
+        if [ -z "$APK_FILE" ]; then
+          echo "ERROR: No APK found in build outputs!" >&2
+          ls -R pio/build/outputs/apk/ || true
+          exit 1
+        fi
         cp "$APK_FILE" "release-apk/${{ steps.version.outputs.apk_name }}"
+        echo "APK prepared: $APK_FILE -> release-apk/${{ steps.version.outputs.apk_name }}"
         ls -lah release-apk
 
     - name: Upload APK artifact
@@ -204,7 +210,12 @@ jobs:
         GH_TOKEN: ${{ github.token }}
       run: |
         set -euo pipefail
+        if [ "${{ steps.signing.outputs.signing_available }}" = "true" ]; then
+          SIGNING_NOTE="Signed with release key."
+        else
+          SIGNING_NOTE="Signed with debug key (not Play Store ready)."
+        fi
         gh release create "${{ steps.version.outputs.release_tag }}" release-apk/*.apk \
           --target "$GITHUB_SHA" \
           --title "${{ steps.version.outputs.release_title }}" \
-          --notes "Automated APK build. Version: ${{ steps.version.outputs.release_version }}. APK: ${{ steps.version.outputs.apk_name }}. Commit: $GITHUB_SHA"
+          --notes "Automated APK build. Version: ${{ steps.version.outputs.release_version }}. APK: ${{ steps.version.outputs.apk_name }}. Commit: $GITHUB_SHA. ${SIGNING_NOTE}"
