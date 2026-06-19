@@ -24,7 +24,7 @@ open class ListItemSwitch(private val context: Context,
 
         if (config.getState.isNotEmpty()) {
             val shellResult = ScriptEnvironmen.executeResultRoot(context, config.getState, config)
-            config.checked = shellResult == "1" || shellResult.lowercase(Locale.ROOT) == "true"
+            config.checked = shellResult == "1" || shellResult.toLowerCase(Locale.ROOT) == "true"
         }
         checked = config.checked
     }

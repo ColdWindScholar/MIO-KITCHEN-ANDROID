@@ -82,7 +82,7 @@ class AdapterAppChooser(
                 results.values = list
                 results.count = list.size
             } else {
-                val prefixString = prefix.lowercase(Locale.ROOT)
+                val prefixString = prefix.toLowerCase(Locale.ROOT)
 
                 val values: ArrayList<AppInfo>
                 synchronized(adapter.mLock) {
@@ -98,8 +98,8 @@ class AdapterAppChooser(
                     if (selected.contains(value)) {
                         newValues.add(value)
                     } else {
-                        val labelText = value.appName.lowercase(Locale.ROOT)
-                        val valueText = value.packageName.lowercase(Locale.ROOT)
+                        val labelText = value.appName.toLowerCase(Locale.ROOT)
+                        val valueText = value.packageName.toLowerCase(Locale.ROOT)
                         if (searchStr(labelText, prefixString)) {
                             newValues.add(value)
                         } else if (searchStr(valueText, prefixString)) {
@@ -148,9 +148,10 @@ class AdapterAppChooser(
             if (icon == null && !app.notFound) {
                 try {
                     val installInfo = context.packageManager.getPackageInfo(packageName, 0)
-                    installInfo.applicationInfo?.loadIcon(context.packageManager)?.let { drawable ->
-                        iconCaches.put(packageName, drawable)
-                    }
+                    iconCaches.put(
+                            packageName,
+                            installInfo.applicationInfo.loadIcon(context.packageManager)
+                    )
                 } catch (ex: Exception) {
                     app.notFound = true
                 } finally {

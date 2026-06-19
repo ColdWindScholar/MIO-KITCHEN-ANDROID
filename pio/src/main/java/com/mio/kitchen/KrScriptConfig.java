@@ -2,27 +2,11 @@ package com.mio.kitchen;
 
 import android.content.Context;
 
+import com.omarea.krscript.executor.ScriptEnvironmen;
 import com.omarea.krscript.model.PageNode;
 
 import java.util.HashMap;
 
-/**
- * RU: Конфигурация KrScript для MIO-KITCHEN.
- *
- * Stage 22: ранее этот класс также инициализировал `ScriptEnvironmen`
- * напрямую. Теперь `ScriptEnvironmen` инициализируется через
- * `LegacyShellBridge.init(context)`, который вызывается из `SplashActivity`
- * и `MainActivity`. Этот класс остаётся только как источник конфигурации
- * (пути к assets, page-config-sh, before-start-sh).
- *
- * EN: KrScript configuration for MIO-KITCHEN.
- *
- * Stage 22: previously this class also initialised `ScriptEnvironmen`
- * directly. Now `ScriptEnvironmen` is initialised via
- * `LegacyShellBridge.init(context)`, which is called from `SplashActivity`
- * and `MainActivity`. This class remains only as a configuration source
- * (asset paths, page-config-sh, before-start-sh).
- */
 public class KrScriptConfig {
 
     private final static String TOOLKIT_DIR = "toolkit_dir";
@@ -41,12 +25,7 @@ public class KrScriptConfig {
             configInfo.put("page_list_config", "file:///android_asset/script2/more.xml");
             configInfo.put("favorite_config", "file:///android_asset/script2/home.xml");
             configInfo.put("toolkit_dir", "file:///android_asset/bin");
-            // RU: Stage 22 — ScriptEnvironmen.init теперь вызывается через
-            //     LegacyShellBridge из SplashActivity/MainActivity. Здесь мы
-            //     только заполняем конфигурацию.
-            // EN: Stage 22 — ScriptEnvironmen.init is now called via
-            //     LegacyShellBridge from SplashActivity/MainActivity. Here we
-            //     only populate the configuration.
+            ScriptEnvironmen.init(context, getExecutorCore(), getToolkitDir());
         }
         return this;
     }
@@ -55,14 +34,14 @@ public class KrScriptConfig {
         return configInfo;
     }
 
-    public String getExecutorCore() {
+    private String getExecutorCore() {
         if (configInfo != null && configInfo.containsKey("executor_core")) {
             return configInfo.get("executor_core");
         }
         return "file:///android_asset/script2/executor.sh";
     }
 
-    public String getToolkitDir() {
+    private String getToolkitDir() {
         if (configInfo != null && configInfo.containsKey(TOOLKIT_DIR)) {
             return configInfo.get(TOOLKIT_DIR);
         }
