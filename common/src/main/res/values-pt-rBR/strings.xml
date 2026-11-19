@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="execute_success">Executado com sucesso</string>
+    <string name="execute_fail">Falha na execução</string>
+    <string name="execute_wait">Executando, aguarde…</string>
+    <string name="btn_confirm">OK</string>
+    <string name="app_chooser_search_hint">Buscar por nome do app/pacote</string>
+    <string name="item_chooser_search_hint">Buscar item</string>
+    <string name="select_all">Selecionar tudo</string>
+    <string name="help_title">Ajuda</string>
+    <string name="btn_cancel">Cancelar</string>
+    <string name="btn_skip">Pular</string>
+</resources>
