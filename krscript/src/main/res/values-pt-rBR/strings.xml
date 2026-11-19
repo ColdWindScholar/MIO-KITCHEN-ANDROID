@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="btn_confirm">OK</string>
+    <string name="shell_executor">Executor de scripts</string>
+    <string name="btn_cancel">Cancelar</string>
+    <string name="btn_skip">Pular</string>
+    <string name="btn_exit">Sair</string>
+    <string name="btn_hide">Ocultar</string>
+    <string name="btn_execute">Executar</string>
+    <string name="onloading">Carregando dados…</string>
+    <string name="kr_shell_completed">Execução do script concluída</string>
+    <string name="kr_shell_finish_error">Execução finalizada, mas ocorreram erros</string>
+    <string name="script_losted">Recurso do script perdido\n</string>
+    <string name="btn_copy_output">Copiar saída</string>
+    <string name="copy_success">Log de saída copiado para a área de transferência</string>
+    <string name="copy_fail">Falha ao copiar</string>
+    <string name="do_not_empty">Não pode ficar vazio</string>
+    <string name="kr_param_load">Obtendo status</string>
+    <string name="kr_param_options_load">"Carregando lista de opções "</string>
+    <string name="kr_params_render">Renderizando a interface……</string>
+    <string name="kr_please_choose_folder">Selecione um diretório</string>
+    <string name="kr_please_choose_file">Selecione um arquivo</string>
+    <string name="kr_please_choose_app">Selecione um aplicativo</string>
+    <string name="kr_please_input_color">Informe uma cor</string>
+    <string name="kr_please_select">Selecione</string>
+    <string name="kr_write_external_storage">É necessária permissão de leitura e escrita no armazenamento externo!</string>
+    <string name="kr_download_create_fail">Falha ao criar a tarefa de download</string>
+    <string name="kr_download_create_success">Download do arquivo iniciado</string>
+    <string name="kr_download_confirm">Deseja baixar o arquivo?</string>
+    <string name="kr_download_completed">Arquivo baixado com sucesso</string>
+    <string name="kr_download_downloading">Baixando arquivo</string>
+    <string name="kr_color_picker">Selecione uma cor</string>
+    <string name="kr_invalid_color">Valor de cor inválido, só é aceito um formato como #ff88aa00</string>
+
+
+    <string name="kr_slice_script_result">Conteúdo da saída do script</string>
+    <string name="kr_slice_activity_fail">Não foi possível abrir a atividade~</string>
+
+    <string name="kr_page_before_load">Preparando para analisar a configuração</string>
+    <string name="kr_page_loading">Analisando a configuração</string>
+    <string name="kr_page_after_load">Análise da configuração concluída</string>
+    <string name="kr_page_sh_invalid">Saída de configuração de página inválida</string>
+    <string name="kr_page_sh_file_permission">O arquivo de configuração indicado não existe ou não há permissão de leitura</string>
+    <string name="kr_page_load_fail">Não foi possível carregar a página</string>
+    <string name="kr_page_load_success">Página carregada com sucesso</string>
+    <string name="kr_auto_run_item_losted">O item indicado foi perdido</string>
+    <string name="kr_hidden_task_running">Rápido demais, a operação anterior ainda não terminou!</string>
+    <string name="kr_lock_message">Este recurso está bloqueado</string>
+    <string name="kr_sdk_too_low">Versão do sistema muito antiga</string>
+    <string name="kr_sdk_overtop">Versão do sistema muito recente</string>
+    <string formatted="false" name="kr_sdk_message">Este recurso só funciona em sistemas do SDK %d ~ %d</string>
+    <string name="kr_sdk_discrepancy">Versão do sistema incompatível</string>
+    <string formatted="false" name="kr_sdk_discrepancy_message">Este recurso só funciona em sistemas do SDK %d</string>
+    <string name="picker_not_item">Nenhuma opção disponível!</string>
+    <string name="picker_select_none">Nenhum item selecionado!</string>
+    <string name="xml_config_parse_failed">Falha ao analisar o arquivo de configuração</string>
+</resources>
