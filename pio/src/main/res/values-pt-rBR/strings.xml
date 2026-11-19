@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="btn_exit">Sair</string>
+    <string name="please_wait">Só um momento</string>
+    <string name="title_activity_action_page">Páginas de funções</string>
+
+    <string name="about_title">Sobre - MIO-KITCHEN</string>
+    <string name="appliction_desc">A ferramenta de ROM Android gratuita para sempre</string>
+    <string name="appliction_author">Trazido a você por: ColdWindScholar</string>
+    <string name="engine_version_name">Baseado em [Kr-Script4.0.3]</string>
+
+    <string name="tab_home">Início</string>
+    <string name="tab_favorites">Favoritos</string>
+    <string name="tab_pages">Tudo</string>
+
+    <string name="copy_success">Copiado</string>
+    <string name="btn_retry">Tentar novamente</string>
+
+    <string name="pio_starting">Iniciando</string>
+    <string name="pop_before_start">O app vai iniciar em breve…</string>
+    <string name="pop_started">Concluído!</string>
+    <string name="pio_permission_checking">Verificando e obtendo as permissões necessárias……</string>
+    <string name="error_root">Seu dispositivo não está com ROOT. Se ele já estiver com ROOT, confirme que você concedeu acesso de superusuário a este app na caixa de diálogo exibida.</string>
+    <string name="warn_">Aviso</string>
+    <string name="error_su_timeout">Tempo esgotado aguardando a autorização de ROOT, verifique se o gerenciador de superusuário está em execução em segundo plano!</string>
+    <string name="transparent_ui">Fundo transparente</string>
+    <string name="title_activity_file_selector">Selecione um arquivo</string>
+    <string name="title_activity_folder_selector">Segure para selecionar o diretório</string>
+
+    <string name="join_qq_group">Entrar no grupo do QQ</string>
+    <string name="support_us">Apoie-nos</string>
+    <string name="power_off">Desligar</string>
+    <string name="desc_power_off">Desligamento normal</string>
+    <string name="reboot_system">Reiniciar</string>
+    <string name="desc_reboot_system">Reinício normal</string>
+    <string name="restart_system_ui">Reiniciar a SystemUI</string>
+    <string name="desc_restart_system_ui">Reinicia apenas a SystemUI, mais rápido (pode causar problemas)</string>
+    <string name="reboot_recovery">Reiniciar no Recovery</string>
+    <string name="desc_reboot_recovery">Reinicia no modo Recovery (ex.: TWRP, etc.)</string>
+    <string name="reboot_fastboot">Reiniciar no Fastboot</string>
+    <string name="desc_reboot_fastboot">Reinicia no modo Fastboot (também conhecido como Bootloader)</string>
+    <string name="reboot_edl">Reiniciar no EDL</string>
+    <string name="desc_reboot_edl">Reinicia no modo Download (*funciona apenas em alguns dispositivos Qualcomm)</string>
+    <string name="select_action">Selecione uma ação</string>
+    <string name="thanks_for_your_support">Obrigado pelo seu apoio!</string>
+    <string name="wechat_is_not_installed">O WeChat não está instalado ou a versão instalada não é compatível</string>
+    <string name="redirected_to_qq">Redirecionado para o QQ</string>
+    <string name="qq_is_not_installed">O QQ não está instalado ou a versão instalada não é compatível</string>
+    <string name="confirm_file_selection">O arquivo a seguir será selecionado:</string>
+    <string name="selected_file_gone">O arquivo selecionado foi movido ou excluído, selecione novamente!</string>
+    <string name="now_loading">Carregando…</string>
+    <string name="directory_is_empty">Este diretório está vazio!</string>
+    <string name="confirm_select_directory">O diretório a seguir será selecionado:</string>
+</resources>
